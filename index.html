@@ -13,32 +13,107 @@
     <style>
         /* ===== DESIGN TOKENS ===== */
         :root {
+            /* Accent (changes per phase) */
             --accent: #e05c74;
             --accent-glow: rgba(224, 92, 116, 0.3);
+            /* Layout */
+            --radius-lg: 1.5rem;
+            --radius-md: 0.75rem;
+            --radius-sm: 0.5rem;
+            --ring-size: 260px;
+            /* === DARK THEME (default) === */
+            --bg: #0b0c14;
             --card-bg: rgba(12, 12, 18, 0.82);
             --surface: rgba(255, 255, 255, 0.06);
             --surface-hover: rgba(255, 255, 255, 0.1);
             --border: rgba(255, 255, 255, 0.09);
             --text-primary: #f0f0f5;
             --text-secondary: rgba(255, 255, 255, 0.5);
-            --radius-lg: 1.5rem;
-            --radius-md: 0.75rem;
-            --radius-sm: 0.5rem;
-            --transition-color: background-color 0.6s cubic-bezier(.4,0,.2,1), color 0.6s ease;
-            --ring-size: 260px;
+            --blob-opacity: 0.22;
+            --blob-opacity-2: 0.16;
+            /* Drawer */
+            --drawer-bg: #111117;
+            --drawer-border: rgba(255, 255, 255, 0.06);
+            --drawer-title: #f0f0f5;
+            --section-label-clr: rgba(255, 255, 255, 0.32);
+            --profile-card-bg: rgba(255, 255, 255, 0.04);
+            --profile-card-border: rgba(255, 255, 255, 0.07);
+            --profile-name-clr: #f0f0f5;
+            --profile-meta-clr: rgba(255, 255, 255, 0.38);
+            --builder-bg: rgba(255, 255, 255, 0.03);
+            --builder-border: rgba(255, 255, 255, 0.07);
+            --input-bg: rgba(255, 255, 255, 0.06);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-clr: #f0f0f5;
+            --toggle-track-inactive: rgba(255, 255, 255, 0.12);
+            --toggle-label-clr: rgba(255, 255, 255, 0.68);
+            --draft-item-bg: rgba(255, 255, 255, 0.05);
+            --draft-item-clr: rgba(255, 255, 255, 0.78);
+            --draft-meta-clr: rgba(255, 255, 255, 0.38);
+            --draft-remove-clr: rgba(255, 255, 255, 0.28);
+            --divider-clr: rgba(255, 255, 255, 0.06);
+            --scrollbar-clr: rgba(255, 255, 255, 0.13);
+            --ghost-bg: rgba(255, 255, 255, 0.06);
+            --ghost-clr: rgba(255, 255, 255, 0.68);
+            --ghost-border: rgba(255, 255, 255, 0.1);
+            --select-bg: rgba(255, 255, 255, 0.06);
+            --select-border: rgba(255, 255, 255, 0.09);
+            --icon-btn-bg: rgba(0, 0, 0, 0.25);
+        }
+
+        /* === DAY THEME === */
+        [data-theme="day"] {
+            --bg: #f0ece6;
+            --card-bg: rgba(255, 255, 255, 0.72);
+            --surface: rgba(0, 0, 0, 0.05);
+            --surface-hover: rgba(0, 0, 0, 0.09);
+            --border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1e1c2d;
+            --text-secondary: rgba(30, 28, 45, 0.52);
+            --blob-opacity: 0.14;
+            --blob-opacity-2: 0.08;
+            /* Drawer */
+            --drawer-bg: #faf8f5;
+            --drawer-border: rgba(0, 0, 0, 0.07);
+            --drawer-title: #1e1c2d;
+            --section-label-clr: rgba(30, 28, 45, 0.38);
+            --profile-card-bg: rgba(0, 0, 0, 0.03);
+            --profile-card-border: rgba(0, 0, 0, 0.08);
+            --profile-name-clr: #1e1c2d;
+            --profile-meta-clr: rgba(30, 28, 45, 0.48);
+            --builder-bg: rgba(0, 0, 0, 0.025);
+            --builder-border: rgba(0, 0, 0, 0.07);
+            --input-bg: rgba(0, 0, 0, 0.05);
+            --input-border: rgba(0, 0, 0, 0.15);
+            --input-clr: #1e1c2d;
+            --toggle-track-inactive: rgba(0, 0, 0, 0.12);
+            --toggle-label-clr: rgba(30, 28, 45, 0.72);
+            --draft-item-bg: rgba(0, 0, 0, 0.04);
+            --draft-item-clr: rgba(30, 28, 45, 0.82);
+            --draft-meta-clr: rgba(30, 28, 45, 0.45);
+            --draft-remove-clr: rgba(30, 28, 45, 0.28);
+            --divider-clr: rgba(0, 0, 0, 0.07);
+            --scrollbar-clr: rgba(0, 0, 0, 0.13);
+            --ghost-bg: rgba(0, 0, 0, 0.05);
+            --ghost-clr: rgba(30, 28, 45, 0.72);
+            --ghost-border: rgba(0, 0, 0, 0.12);
+            --select-bg: rgba(0, 0, 0, 0.05);
+            --select-border: rgba(0, 0, 0, 0.1);
+            --icon-btn-bg: rgba(255, 255, 255, 0.55);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #0b0c14;
+            background: var(--bg);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             position: relative;
+            transition: background 0.4s ease;
         }
 
         /* Blurred background blobs */
@@ -47,10 +122,10 @@
             position: fixed;
             border-radius: 50%;
             filter: blur(100px);
-            opacity: 0.22;
+            opacity: var(--blob-opacity);
             pointer-events: none;
             z-index: 0;
-            transition: background 0.7s ease;
+            transition: background 0.5s ease, opacity 0.4s ease;
         }
         body::before {
             width: 55vw; height: 55vw;
@@ -61,7 +136,7 @@
             width: 45vw; height: 45vw;
             bottom: -15vw; right: -15vw;
             background: var(--accent);
-            opacity: 0.16;
+            opacity: var(--blob-opacity-2);
         }
 
         /* ===== TOOLBAR ===== */
@@ -75,7 +150,7 @@
         }
 
         .icon-btn {
-            background: rgba(0,0,0,0.25);
+            background: var(--icon-btn-bg);
             backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             color: var(--text-primary);
@@ -146,8 +221,8 @@
 
         select#profile-select {
             appearance: none;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            background: var(--select-bg);
+            border: 1px solid var(--select-border);
             color: var(--text-primary);
             padding: 0.4rem 2rem 0.4rem 0.85rem;
             border-radius: 9999px;
@@ -316,31 +391,31 @@
             right: 0;
             bottom: 0;
             width: min(420px, 100vw);
-            background: #111117;
-            border-left: 1px solid rgba(255,255,255,0.08);
+            background: var(--drawer-bg);
+            border-left: 1px solid var(--drawer-border);
             z-index: 201;
             display: flex;
             flex-direction: column;
             transform: translateX(100%);
-            transition: transform 0.35s cubic-bezier(.22,1,.36,1);
+            transition: transform 0.35s cubic-bezier(.22,1,.36,1), background 0.3s ease;
             overflow: hidden;
         }
         .drawer-overlay.active .drawer { transform: translateX(0); }
 
         .drawer-header {
             padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid var(--drawer-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
         }
-        .drawer-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+        .drawer-title { font-size: 1.15rem; font-weight: 700; color: var(--drawer-title); }
 
         .drawer-close {
-            background: rgba(255,255,255,0.07);
+            background: var(--surface);
             border: none;
-            color: rgba(255,255,255,0.6);
+            color: var(--text-secondary);
             width: 2.2rem;
             height: 2.2rem;
             border-radius: 50%;
@@ -351,7 +426,7 @@
             font-size: 1.2rem;
             transition: background 0.2s, color 0.2s;
         }
-        .drawer-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .drawer-close:hover { background: var(--surface-hover); color: var(--text-primary); }
 
         .drawer-body {
             flex: 1;
@@ -365,7 +440,7 @@
         /* Drawer scrollbar */
         .drawer-body::-webkit-scrollbar { width: 4px; }
         .drawer-body::-webkit-scrollbar-track { background: transparent; }
-        .drawer-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+        .drawer-body::-webkit-scrollbar-thumb { background: var(--scrollbar-clr); border-radius: 2px; }
 
         /* ===== DRAWER SECTIONS ===== */
         .section-label {
@@ -373,13 +448,13 @@
             font-weight: 700;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
+            color: var(--section-label-clr);
             margin-bottom: 0.75rem;
         }
 
         .profile-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: var(--profile-card-bg);
+            border: 1px solid var(--profile-card-border);
             border-radius: var(--radius-md);
             padding: 0.9rem 1rem;
             display: flex;
@@ -388,8 +463,8 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .profile-card:hover { background: rgba(255,255,255,0.08); }
-        .profile-card.active-profile { border-color: var(--accent); background: rgba(244,63,94,0.08); }
+        .profile-card:hover { background: var(--surface-hover); }
+        .profile-card.active-profile { border-color: var(--accent); background: rgba(224,92,116,0.08); }
 
         .profile-card-left { display: flex; align-items: center; gap: 0.75rem; }
 
@@ -399,13 +474,13 @@
         }
         .swatch-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-        .profile-card-info .name { font-size: 0.9rem; font-weight: 600; color: #fff; }
-        .profile-card-info .meta { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top: 0.15rem; }
+        .profile-card-info .name { font-size: 0.9rem; font-weight: 600; color: var(--profile-name-clr); }
+        .profile-card-info .meta { font-size: 0.72rem; color: var(--profile-meta-clr); margin-top: 0.15rem; }
 
         .profile-delete-btn {
             background: none;
             border: none;
-            color: rgba(255,255,255,0.25);
+            color: var(--draft-remove-clr);
             cursor: pointer;
             padding: 0.25rem;
             border-radius: 0.25rem;
@@ -416,8 +491,8 @@
 
         /* ===== BUILDER ===== */
         .builder-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: var(--builder-bg);
+            border: 1px solid var(--builder-border);
             border-radius: var(--radius-md);
             padding: 1.25rem;
         }
@@ -428,10 +503,10 @@
         .field-group input[type="text"],
         .field-group input[type="number"] {
             width: 100%;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: var(--radius-sm);
-            color: #fff;
+            color: var(--input-clr);
             font-family: inherit;
             font-size: 0.9rem;
             padding: 0.55rem 0.75rem;
@@ -439,7 +514,7 @@
             transition: border-color 0.2s;
         }
         .field-group input:focus { border-color: var(--accent); }
-        .field-group input::placeholder { color: rgba(255,255,255,0.25); }
+        .field-group input::placeholder { color: var(--text-secondary); }
 
         .toggle-row {
             display: flex;
@@ -449,14 +524,14 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .toggle-row:last-of-type { border-bottom: none; }
-        .toggle-label { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.7); }
+        .toggle-label { font-size: 0.85rem; font-weight: 500; color: var(--toggle-label-clr); }
 
         /* Toggle switch */
         .toggle { position: relative; width: 2.5rem; height: 1.4rem; }
         .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
         .toggle-track {
             position: absolute; inset: 0;
-            background: rgba(255,255,255,0.12);
+            background: var(--toggle-track-inactive);
             border-radius: 9999px;
             cursor: pointer;
             transition: background 0.2s;
@@ -473,7 +548,7 @@
         .toggle input:checked + .toggle-track { background: var(--accent); }
         .toggle input:checked + .toggle-track::after { transform: translateX(1.1rem); }
 
-        .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0.5rem 0; }
+        .divider { height: 1px; background: var(--divider-clr); margin: 0.5rem 0; }
 
         /* Phase builder row */
         .phase-builder-inputs {
@@ -501,21 +576,37 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(255,255,255,0.05);
+            background: var(--draft-item-bg);
             border-radius: var(--radius-sm);
             padding: 0.5rem 0.75rem;
             font-size: 0.82rem;
             font-weight: 500;
-            color: rgba(255,255,255,0.8);
+            color: var(--draft-item-clr);
         }
         .draft-phase-item-left { display: flex; align-items: center; gap: 0.5rem; }
         .draft-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; flex-shrink: 0; }
         .draft-remove {
-            background: none; border: none; color: rgba(255,255,255,0.3);
+            background: none; border: none; color: var(--draft-remove-clr);
             cursor: pointer; padding: 0.1rem; font-size: 0.9rem; line-height: 1;
             transition: color 0.2s;
         }
         .draft-remove:hover { color: #ef4444; }
+
+        /* Phase builder inputs */
+        .phase-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--input-clr);
+            font-family: inherit;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 0.5rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .phase-input:focus { border-color: var(--accent); }
+        .phase-input::placeholder { color: var(--text-secondary); }
 
         /* Buttons inside drawer */
         .drawer-btn {
@@ -530,11 +621,11 @@
             transition: all 0.2s;
         }
         .drawer-btn-ghost {
-            background: rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--ghost-bg);
+            color: var(--ghost-clr);
+            border: 1px solid var(--ghost-border);
         }
-        .drawer-btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .drawer-btn-ghost:hover { background: var(--surface-hover); color: var(--text-primary); }
         .drawer-btn-accent {
             background: var(--accent);
             color: white;
@@ -544,6 +635,12 @@
 
         .drawer-btn-row { display: flex; gap: 0.5rem; }
         .drawer-btn-row .drawer-btn { flex: 1; }
+
+        /* Theme transition */
+        *, *::before, *::after { transition-property: background-color, border-color, color; transition-duration: 0.3s; }
+        /* (override: don't slow down transforms) */
+        button, .phase-tab, .start-btn, .icon-btn, .icon-round-btn { transition-duration: 0.2s; }
+        .ring-progress { transition: stroke-dashoffset 0.3s linear, stroke 0.5s ease !important; }
 
         /* ===== COMPLETION FLASH ===== */
         @keyframes flash-done {
@@ -569,6 +666,9 @@
 
     <!-- Toolbar -->
     <div class="toolbar">
+        <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+            <!-- icon swapped by JS -->
+        </button>
         <button class="icon-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
@@ -683,12 +783,8 @@
 
                     <!-- Phase adder -->
                     <div class="phase-builder-inputs">
-                        <input type="text" id="new-phase-name" placeholder="Phase name (e.g. Work)"
-                            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:inherit;font-size:0.85rem;padding:0.5rem 0.65rem;border-radius:0.5rem;outline:none;width:100%;transition:border-color 0.2s;"
-                            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-                        <input type="number" id="new-phase-time" placeholder="Mins" min="0.1" step="0.1"
-                            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:inherit;font-size:0.85rem;padding:0.5rem 0.65rem;border-radius:0.5rem;outline:none;width:100%;transition:border-color 0.2s;"
-                            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <input class="phase-input" type="text" id="new-phase-name" placeholder="Phase name (e.g. Work)">
+                        <input class="phase-input" type="number" id="new-phase-time" placeholder="Mins" min="0.1" step="0.1">
                     </div>
 
                     <div class="color-swatches" id="color-swatches">
@@ -1088,7 +1184,7 @@
                 item.innerHTML = `
                     <div class="draft-phase-item-left">
                         <div class="draft-dot" style="background:${ph.color}"></div>
-                        ${ph.name} <span style="color:rgba(255,255,255,0.4);margin-left:0.25rem">${Math.round(ph.time/60)}m</span>
+                        ${ph.name} <span style="color:var(--draft-meta-clr);margin-left:0.25rem">${Math.round(ph.time/60)}m</span>
                     </div>
                     <button class="draft-remove" onclick="removeDraftPhase(${idx})">✕</button>
                 `;
@@ -1190,8 +1286,42 @@
             }
         }
 
+        // ===== THEME =====
+        const SUN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>`;
+
+        const MOON_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>`;
+
+        let currentTheme = localStorage.getItem('timergo-theme') || 'dark';
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            if (theme === 'day') {
+                root.setAttribute('data-theme', 'day');
+                document.getElementById('theme-btn').innerHTML = MOON_ICON;
+                document.getElementById('theme-btn').title = 'Switch to Night';
+            } else {
+                root.removeAttribute('data-theme');
+                document.getElementById('theme-btn').innerHTML = SUN_ICON;
+                document.getElementById('theme-btn').title = 'Switch to Day';
+            }
+            localStorage.setItem('timergo-theme', theme);
+        }
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'day' : 'dark');
+        }
+
         // ===== INIT =====
         ringProgress.style.strokeDasharray = RING_CIRCUMFERENCE;
+        applyTheme(currentTheme);  // Apply saved theme first
         initProfileSelect();
         applyPhase(0, false);
     </script>
