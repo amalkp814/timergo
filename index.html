@@ -13,14 +13,14 @@
     <style>
         /* ===== DESIGN TOKENS ===== */
         :root {
-            --accent: #f43f5e;
-            --accent-glow: rgba(244, 63, 94, 0.35);
-            --card-bg: rgba(15, 15, 20, 0.75);
+            --accent: #e05c74;
+            --accent-glow: rgba(224, 92, 116, 0.3);
+            --card-bg: rgba(12, 12, 18, 0.82);
             --surface: rgba(255, 255, 255, 0.06);
             --surface-hover: rgba(255, 255, 255, 0.1);
-            --border: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.09);
+            --text-primary: #f0f0f5;
+            --text-secondary: rgba(255, 255, 255, 0.5);
             --radius-lg: 1.5rem;
             --radius-md: 0.75rem;
             --radius-sm: 0.5rem;
@@ -32,12 +32,11 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--accent);
+            background: #0b0c14;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.6s cubic-bezier(.4,0,.2,1);
             overflow: hidden;
             position: relative;
         }
@@ -47,22 +46,22 @@
             content: '';
             position: fixed;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
+            filter: blur(100px);
+            opacity: 0.22;
             pointer-events: none;
             z-index: 0;
-            transition: background 0.6s ease;
+            transition: background 0.7s ease;
         }
         body::before {
-            width: 50vw; height: 50vw;
-            top: -10vw; left: -10vw;
+            width: 55vw; height: 55vw;
+            top: -15vw; left: -15vw;
             background: var(--accent);
         }
         body::after {
-            width: 40vw; height: 40vw;
-            bottom: -10vw; right: -10vw;
+            width: 45vw; height: 45vw;
+            bottom: -15vw; right: -15vw;
             background: var(--accent);
-            opacity: 0.3;
+            opacity: 0.16;
         }
 
         /* ===== TOOLBAR ===== */
@@ -693,13 +692,13 @@
                     </div>
 
                     <div class="color-swatches" id="color-swatches">
-                        <button class="swatch-btn selected" style="background:#f43f5e" data-color="#f43f5e" onclick="selectColor(this,'#f43f5e')"></button>
-                        <button class="swatch-btn" style="background:#14b8a6" data-color="#14b8a6" onclick="selectColor(this,'#14b8a6')"></button>
-                        <button class="swatch-btn" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this,'#3b82f6')"></button>
-                        <button class="swatch-btn" style="background:#f59e0b" data-color="#f59e0b" onclick="selectColor(this,'#f59e0b')"></button>
-                        <button class="swatch-btn" style="background:#8b5cf6" data-color="#8b5cf6" onclick="selectColor(this,'#8b5cf6')"></button>
-                        <button class="swatch-btn" style="background:#ec4899" data-color="#ec4899" onclick="selectColor(this,'#ec4899')"></button>
-                        <button class="swatch-btn" style="background:#10b981" data-color="#10b981" onclick="selectColor(this,'#10b981')"></button>
+                        <button class="swatch-btn selected" style="background:#e05c74" data-color="#e05c74" onclick="selectColor(this,'#e05c74')"></button>
+                        <button class="swatch-btn" style="background:#2da89a" data-color="#2da89a" onclick="selectColor(this,'#2da89a')"></button>
+                        <button class="swatch-btn" style="background:#5b82e8" data-color="#5b82e8" onclick="selectColor(this,'#5b82e8')"></button>
+                        <button class="swatch-btn" style="background:#d4883a" data-color="#d4883a" onclick="selectColor(this,'#d4883a')"></button>
+                        <button class="swatch-btn" style="background:#8a6be0" data-color="#8a6be0" onclick="selectColor(this,'#8a6be0')"></button>
+                        <button class="swatch-btn" style="background:#d0608e" data-color="#d0608e" onclick="selectColor(this,'#d0608e')"></button>
+                        <button class="swatch-btn" style="background:#2da878" data-color="#2da878" onclick="selectColor(this,'#2da878')"></button>
                         <label class="swatch-btn custom-swatch" title="Custom color">
                             <input type="color" id="custom-color" value="#f43f5e" oninput="selectColor(null,this.value)">
                         </label>
@@ -746,12 +745,12 @@
                 autoStart: true,
                 loop: true,
                 sequence: [
-                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Short Break', time:  5 * 60, color: '#14b8a6' },
-                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Short Break', time:  5 * 60, color: '#14b8a6' },
-                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Long Break',  time: 15 * 60, color: '#3b82f6' },
+                    { name: 'Work',        time: 25 * 60, color: '#e05c74' },
+                    { name: 'Short Break', time:  5 * 60, color: '#2da89a' },
+                    { name: 'Work',        time: 25 * 60, color: '#e05c74' },
+                    { name: 'Short Break', time:  5 * 60, color: '#2da89a' },
+                    { name: 'Work',        time: 25 * 60, color: '#e05c74' },
+                    { name: 'Long Break',  time: 15 * 60, color: '#5b82e8' },
                 ]
             }
         };
@@ -834,9 +833,8 @@
 
         function setAccent(color) {
             root.style.setProperty('--accent', color);
-            // Derive glow
             root.style.setProperty('--accent-glow', hexToGlow(color));
-            document.body.style.background = color;
+            // Body stays dark; blobs pick up color via CSS var(--accent)
             ringProgress.style.stroke = color;
         }
 
