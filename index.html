@@ -6,7 +6,7 @@
 
     <!-- ===== Primary SEO ===== -->
     <title>TimerGo — Beautiful Pomodoro &amp; Focus Timer</title>
-    <meta name="description" content="TimerGo is a free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation. Runs entirely in your browser — no account required.">
+    <meta name="description" content="TimerGo is a free, installable Pomodoro &amp; focus timer with custom profiles, day/night themes, and audio alerts. Works offline — no account required.">
     <meta name="keywords" content="pomodoro timer, focus timer, productivity, work timer, break timer, time management, PWA, installable app">
     <meta name="author" content="TimerGo Contributors">
     <meta name="robots" content="index, follow">
@@ -16,10 +16,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://amalkp814.github.io/timergo/">
     <meta property="og:title" content="TimerGo — Beautiful Pomodoro &amp; Focus Timer">
-    <meta property="og:description" content="Free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation. No account required.">
+    <meta property="og:description" content="Free, installable Pomodoro timer with custom multi-phase profiles, dark mode, audio alerts, and sequence automation.">
     <meta property="og:image" content="https://amalkp814.github.io/timergo/og-preview.jpg">
-    <meta property="og:image:width" content="1366">
-    <meta property="og:image:height" content="768">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="TimerGo app preview showing the circular timer with Pomodoro sequence">
     <meta property="og:site_name" content="TimerGo">
     <meta property="og:locale" content="en_US">
@@ -28,7 +29,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://amalkp814.github.io/timergo/">
     <meta name="twitter:title" content="TimerGo — Beautiful Pomodoro &amp; Focus Timer">
-    <meta name="twitter:description" content="Free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation.">
+    <meta name="twitter:description" content="Free, installable Pomodoro timer with custom multi-phase profiles, dark mode, and sequence automation.">
     <meta name="twitter:image" content="https://amalkp814.github.io/timergo/og-preview.jpg">
     <meta name="twitter:image:alt" content="TimerGo app preview">
 
@@ -58,7 +59,7 @@
             --radius-lg: 1.5rem;
             --radius-md: 0.75rem;
             --radius-sm: 0.5rem;
-            --ring-size: 260px;
+            --ring-size: min(260px, 62vw, 42vh);
             /* === DARK THEME (default) === */
             --bg: #0b0c14;
             --card-bg: rgba(12, 12, 18, 0.82);
@@ -146,11 +147,11 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            position: relative;
+            position: fixed;
+            inset: 0;
             transition: background 0.4s ease;
         }
 
@@ -179,7 +180,11 @@
 
         /* ===== MAIN CARD ===== */
         .container {
-            position: relative;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            transform-origin: center center;
             z-index: 10;
             width: min(400px, 92vw);
             background: var(--card-bg);
@@ -191,11 +196,15 @@
             padding: 1.5rem 1.75rem 2rem;
             text-align: center;
             animation: card-in 0.5s cubic-bezier(.22,1,.36,1) both;
+            will-change: transform;
+        }
+        .container.smooth-transform {
+            transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
         }
 
         @keyframes card-in {
-            from { opacity: 0; transform: translateY(24px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translate(-50%, calc(-50% + 24px)) scale(0.97); }
+            to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
 
         /* ===== HEADER ===== */
@@ -205,13 +214,18 @@
             justify-content: space-between;
             margin-bottom: 1.25rem;
             gap: 0.5rem;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
         }
+        .app-header.dragging { cursor: grabbing; }
 
         .header-left {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             min-width: 0;
+            flex: 1 1 auto;
         }
 
         .logo {
@@ -220,6 +234,7 @@
             letter-spacing: 0.04em;
             color: var(--text-primary);
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .logo span { color: var(--accent); }
 
@@ -233,6 +248,8 @@
         .select-wrapper {
             position: relative;
             min-width: 0;
+            flex: 1 1 auto;
+            max-width: 160px;
         }
         .select-wrapper::after {
             content: '⌄';
@@ -259,7 +276,8 @@
             cursor: pointer;
             outline: none;
             transition: color 0.2s;
-            max-width: 120px;
+            width: 100%;
+            max-width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -372,7 +390,7 @@
         }
 
         .timer-display {
-            font-size: 4rem;
+            font-size: calc(var(--ring-size) * 0.246);
             font-weight: 800;
             color: var(--text-primary);
             font-variant-numeric: tabular-nums;
@@ -785,6 +803,116 @@
             flex-shrink: 0;
         }
 
+        /* ===== WALLPAPER LAYER ===== */
+        #bg-wallpaper {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            opacity: 0;
+        }
+        #bg-wallpaper.active {
+            opacity: 1;
+        }
+        body.has-custom-wp::before,
+        body.has-custom-wp::after {
+            opacity: 0.12;
+        }
+
+        /* ===== QUOTE BAR ===== */
+        .quote-bar {
+            margin-top: 1.1rem;
+            padding-top: 0.85rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.5;
+            opacity: 0.85;
+            cursor: pointer;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            min-height: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quote-bar:hover { opacity: 1; transform: translateY(-1px); }
+        .quote-bar.hidden { display: none; }
+        .quote-bar.fade { opacity: 0; transform: translateY(3px); }
+
+        /* ===== ZOOM PILL ===== */
+        .zoom-pill {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.1rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            padding: 0.3rem 0.45rem;
+            z-index: 50;
+            opacity: 0.25;
+            transition: opacity 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+        .zoom-pill:hover { opacity: 1; }
+        /* Touch devices have no hover state, so don't hide the zoom controls behind one */
+        @media (hover: none) {
+            .zoom-pill { opacity: 0.9; }
+        }
+        .zoom-pill-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: background 0.15s;
+        }
+        .zoom-pill-btn:hover { background: var(--surface-hover); }
+        .zoom-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 2.5rem;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
+        /* ===== WALLPAPER SETTINGS ===== */
+        .wp-options {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .wp-swatch {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+            flex-shrink: 0;
+        }
+        .wp-swatch:hover { transform: scale(1.15); }
+        .wp-swatch.selected { border-color: var(--accent); transform: scale(1.1); }
+        .wp-swatch.default { background: linear-gradient(135deg, #1a0a12 0%, #0b0c14 50%, #0a1a20 100%); }
+
         /* Theme transition */
         *, *::before, *::after { transition-property: background-color, border-color, color; transition-duration: 0.3s; }
         /* (override: don't slow down transforms) */
@@ -809,14 +937,97 @@
 
         /* Small icons within text flow */
         svg.inline-icon { width: 1rem; height: 1rem; vertical-align: -2px; }
+
+        /* ===== NARROW / MOBILE ===== */
+        @media (max-width: 400px) {
+            .container {
+                padding: 1.25rem 1.25rem 1.5rem;
+            }
+            .app-header {
+                flex-wrap: wrap;
+                row-gap: 0.6rem;
+            }
+            .header-left {
+                flex: 1 1 100%;
+            }
+            .select-wrapper {
+                max-width: none;
+            }
+            .header-actions {
+                flex: 1 1 100%;
+                justify-content: flex-end;
+            }
+            .zoom-pill {
+                bottom: 0.75rem;
+                right: 0.75rem;
+                padding: 0.3rem 0.4rem;
+                gap: 0.15rem;
+                opacity: 0.9;
+            }
+            .zoom-pill-btn {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1.05rem;
+            }
+            .zoom-label {
+                font-size: 0.68rem;
+                min-width: 2.3rem;
+            }
+        }
+
+        /* ===== SHORT VIEWPORTS (landscape phones) ===== */
+        @media (max-height: 480px) {
+            .container {
+                padding: 1rem 1.25rem 1.25rem;
+            }
+            .app-header {
+                margin-bottom: 0.6rem;
+            }
+            .phases-strip {
+                margin-bottom: 0.6rem;
+                padding: 0.1rem 0;
+            }
+            .ring-wrapper {
+                margin-bottom: 0.6rem;
+            }
+            .session-info {
+                margin-bottom: 0.75rem;
+            }
+            .zoom-pill {
+                bottom: 0.5rem;
+                right: 0.5rem;
+                padding: 0.2rem 0.3rem;
+                opacity: 0.9;
+            }
+            .zoom-pill-btn {
+                width: 1.6rem;
+                height: 1.6rem;
+                font-size: 0.9rem;
+            }
+            .zoom-label {
+                font-size: 0.62rem;
+                min-width: 2rem;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Wallpaper backdrop -->
+    <div id="bg-wallpaper"></div>
+
+    <!-- Zoom controls pill -->
+    <div class="zoom-pill" id="zoom-pill">
+        <button class="zoom-pill-btn" onclick="zoomOut()" title="Zoom out">&#8722;</button>
+        <span class="zoom-label" id="zoom-label">100%</span>
+        <button class="zoom-pill-btn" onclick="zoomIn()" title="Zoom in">&#43;</button>
+        <button class="zoom-pill-btn" onclick="zoomReset()" title="Reset zoom" style="font-size:0.7rem;font-weight:600;width:2rem">&#8635;</button>
+    </div>
+
     <!-- Main Card -->
-    <div class="container">
-        <!-- Header: logo | profile selector | icon actions -->
-        <div class="app-header">
+    <div class="container" id="main-container">
+        <!-- Header: logo | profile selector | icon actions (drag handle) -->
+        <div class="app-header" id="app-header" title="Drag to move card · Double-click to center">
             <div class="header-left">
                 <div class="logo">Timer<span>Go</span></div>
                 <div class="header-divider"></div>
@@ -898,6 +1109,11 @@
                     <line x1="19" y1="4" x2="19" y2="20"/>
                 </svg>
             </button>
+        </div>
+
+        <!-- Motivational Quote Bar -->
+        <div class="quote-bar hidden" id="quote-bar" onclick="nextQuote()" title="Click for next quote">
+            <span class="quote-text" id="quote-text">Stay focused.</span>
         </div>
     </div>
 
@@ -1014,13 +1230,59 @@
                     <div class="section-label">Data</div>
                     <div class="drawer-btn-row">
                         <button class="drawer-btn drawer-btn-ghost" onclick="exportData()">
-                            ↓ Export
+                            &#8595; Export
                         </button>
                         <button class="drawer-btn drawer-btn-ghost" onclick="document.getElementById('import-file').click()">
-                            ↑ Import
+                            &#8593; Import
                         </button>
                     </div>
                     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+                </div>
+
+                <!-- Appearance -->
+                <div>
+                    <div class="section-label">Appearance</div>
+
+                    <div class="field-group" style="margin-bottom:0.6rem">
+                        <label>Wallpaper</label>
+                        <div class="wp-options" id="wp-swatches">
+                            <button class="wp-swatch default selected" data-wp="default" title="Default" onclick="setWallpaper('default',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#1a1035,#2d1b69,#11998e)" data-wp="aurora" title="Aurora" onclick="setWallpaper('aurora',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#0f0c29,#302b63,#24243e)" data-wp="midnight" title="Midnight" onclick="setWallpaper('midnight',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#200122,#6f0000)" data-wp="crimson" title="Crimson" onclick="setWallpaper('crimson',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364)" data-wp="ocean" title="Ocean" onclick="setWallpaper('ocean',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#134e5e,#71b280)" data-wp="forest" title="Forest" onclick="setWallpaper('forest',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)" data-wp="sunset" title="Sunset" onclick="setWallpaper('sunset',this)"></button>
+                            <button class="wp-swatch" style="background:linear-gradient(135deg,#f5f0e8,#e8ddd0,#d4c5b0)" data-wp="paper" title="Warm Paper" onclick="setWallpaper('paper',this)"></button>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+                            <input type="text" id="wp-url-input" placeholder="Paste image URL..." style="flex:1;min-width:0" oninput="previewWpUrl()">
+                            <button class="drawer-btn drawer-btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;width:auto;flex-shrink:0" onclick="applyWpUrl()">Apply</button>
+                        </div>
+                        <div style="display:flex;gap:0.5rem">
+                            <button class="drawer-btn drawer-btn-ghost" style="flex:1;min-width:0" onclick="document.getElementById('wp-file').click()">&#8593; Upload Image</button>
+                            <button class="drawer-btn drawer-btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;width:auto;flex-shrink:0" onclick="clearWallpaper()">Clear</button>
+                        </div>
+                        <input type="file" id="wp-file" accept="image/*" style="display:none" onchange="handleWpFile(event)">
+                    </div>
+
+                    <div class="field-group">
+                        <label>Motivational Quotes</label>
+                        <div class="toggle-row" style="margin-bottom:0.6rem">
+                            <span class="toggle-label">Show quotes on card</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="quotes-enabled" onchange="toggleQuotes(this.checked)">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                        <textarea id="quotes-input" rows="4" placeholder="One quote per line...
+Stay focused.
+Small steps every day.
+You've got this!" style="width:100%;resize:vertical;font-size:0.78rem;font-family:inherit;padding:0.5rem 0.7rem;border-radius:0.6rem;border:1px solid var(--input-border);background:var(--input-bg);color:var(--input-clr);outline:none"></textarea>
+                        <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+                            <button class="drawer-btn drawer-btn-accent" style="flex:1" onclick="saveQuotes()">Save Quotes</button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1145,6 +1407,101 @@
             return `rgba(${r},${g},${b},0.4)`;
         }
 
+        // ===== RUNTIME STATE PERSISTENCE (survives refresh / app relaunch) =====
+        const RUNTIME_KEY = 'timergo-runtime-v1';
+        let _lastSavedTimeLeft = null;
+
+        function saveRuntimeState() {
+            try {
+                localStorage.setItem(RUNTIME_KEY, JSON.stringify({
+                    profileId: currentProfileId,
+                    phaseIndex: currentPhaseIndex,
+                    timeLeft,
+                    totalPhaseTime,
+                    isRunning,
+                    endTime,
+                    savedAt: Date.now()
+                }));
+            } catch (e) {}
+        }
+
+        function computeNextPhaseIndex(p, phaseIndex) {
+            const next = phaseIndex + 1;
+            return next >= p.sequence.length ? (p.loop ? 0 : p.sequence.length - 1) : next;
+        }
+
+        function restoreRuntimeState() {
+            let snap = null;
+            try { snap = JSON.parse(localStorage.getItem(RUNTIME_KEY)); } catch (_) {}
+            const p = profiles[currentProfileId];
+            if (!snap || !p || snap.profileId !== currentProfileId || !p.sequence[snap.phaseIndex]) return false;
+
+            let phaseIndex = snap.phaseIndex;
+            let remaining;
+            let running = false;
+
+            if (snap.isRunning && typeof snap.endTime === 'number') {
+                remaining = Math.round((snap.endTime - Date.now()) / 1000);
+                if (remaining > 0) {
+                    running = true;
+                } else {
+                    phaseIndex = computeNextPhaseIndex(p, phaseIndex);
+                    remaining = p.sequence[phaseIndex].time;
+                }
+            } else {
+                remaining = Math.max(0, snap.timeLeft || 0);
+                if (remaining <= 0) {
+                    phaseIndex = computeNextPhaseIndex(p, phaseIndex);
+                    remaining = p.sequence[phaseIndex].time;
+                }
+            }
+
+            currentPhaseIndex = phaseIndex;
+            const phase = p.sequence[phaseIndex];
+            totalPhaseTime = phase.time;
+            timeLeft = remaining;
+
+            setAccent(phase.color);
+            phaseLabel.textContent = phase.name;
+            renderPhases();
+            updateSessionInfo();
+            updateDisplay();
+            setStartBtnState(false);
+
+            if (running) {
+                isRunning = true;
+                endTime = Date.now() + timeLeft * 1000;
+                setStartBtnState(true);
+                startTickInterval();
+            } else {
+                saveRuntimeState();
+            }
+            return true;
+        }
+
+        function startTickInterval() {
+            timerId = setInterval(() => {
+                timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+                updateDisplay();
+                if (timeLeft !== _lastSavedTimeLeft) {
+                    _lastSavedTimeLeft = timeLeft;
+                    saveRuntimeState();
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    isRunning = false;
+                    playChime();
+                    sendNotification();
+                    setStartBtnState(false);
+                    flashDone();
+                    saveRuntimeState();
+                    setTimeout(() => {
+                        if (!isRunning && timeLeft <= 0) advancePhase();
+                    }, 2000);
+                }
+            }, 100);
+        }
+
         function toggleTimer() {
             initAudio();
             const phase = getActivePhase();
@@ -1156,28 +1513,15 @@
                 timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
                 setStartBtnState(false);
                 updateDisplay();
+                saveRuntimeState();
             } else {
                 if (timeLeft <= 0) timeLeft = phase.time;
                 isRunning = true;
                 endTime = Date.now() + timeLeft * 1000;
                 setStartBtnState(true);
                 updateDisplay();
-
-                timerId = setInterval(() => {
-                    timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
-                    updateDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerId);
-                        isRunning = false;
-                        playChime();
-                        sendNotification();
-                        setStartBtnState(false);
-                        flashDone();
-                        setTimeout(() => {
-                            if (!isRunning && timeLeft <= 0) advancePhase();
-                        }, 2000);
-                    }
-                }, 100);
+                saveRuntimeState();
+                startTickInterval();
             }
         }
 
@@ -1208,6 +1552,7 @@
             totalPhaseTime = timeLeft;
             setStartBtnState(false);
             updateDisplay();
+            saveRuntimeState();
         }
 
         function skipPhase() {
@@ -1227,6 +1572,7 @@
                     timeLeft = Math.round(mins * 60);
                     totalPhaseTime = timeLeft;
                     updateDisplay();
+                    saveRuntimeState();
                 }
             }
         }
@@ -1255,6 +1601,10 @@
             renderPhases();
             updateSessionInfo();
             resetTimer();
+
+            if (typeof quotesEnabled !== 'undefined' && quotesEnabled && typeof nextQuote === 'function') {
+                nextQuote();
+            }
 
             if (autoStart) toggleTimer();
         }
@@ -1340,6 +1690,7 @@
             document.getElementById('new-profile-name').value = '';
             draftPhases = [];
             renderDraftPhases();
+            if (typeof syncAppearanceDrawer === 'function') syncAppearanceDrawer();
         }
 
         function closeSettings() {
@@ -1467,10 +1818,21 @@
 
         // ===== IMPORT / EXPORT =====
         function exportData() {
-            const blob = new Blob([JSON.stringify(profiles, null, 2)], { type: 'application/json' });
+            const backup = {
+                version: 2,
+                profiles: profiles,
+                currentProfileId: currentProfileId,
+                theme: currentTheme,
+                wallpaper: currentWallpaper,
+                quotes: quotesList,
+                quotesEnabled: quotesEnabled,
+                zoom: zoomLevel,
+                cardPos: { x: cardPosX, y: cardPosY }
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'timergo_profiles.json';
+            a.href = url; a.download = 'timergo_backup.json';
             a.click();
             URL.revokeObjectURL(url);
         }
@@ -1482,16 +1844,43 @@
             reader.onload = e => {
                 try {
                     const parsed = JSON.parse(e.target.result);
-                    if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                    if (parsed.profiles) {
+                        profiles = parsed.profiles;
+                        if (parsed.currentProfileId && profiles[parsed.currentProfileId]) {
+                            currentProfileId = parsed.currentProfileId;
+                        } else {
+                            currentProfileId = Object.keys(profiles)[0];
+                        }
+                        if (parsed.theme) applyTheme(parsed.theme);
+                        if (parsed.wallpaper) applyWallpaper(parsed.wallpaper);
+                        if (Array.isArray(parsed.quotes)) {
+                            quotesList = parsed.quotes;
+                            localStorage.setItem('timergo-quotes', JSON.stringify(quotesList));
+                        }
+                        if (typeof parsed.quotesEnabled === 'boolean') {
+                            toggleQuotes(parsed.quotesEnabled);
+                        }
+                        if (typeof parsed.zoom === 'number') {
+                            zoomLevel = parsed.zoom;
+                            localStorage.setItem('timergo-zoom', zoomLevel);
+                        }
+                        if (parsed.cardPos) {
+                            cardPosX = parsed.cardPos.x || 0;
+                            cardPosY = parsed.cardPos.y || 0;
+                            localStorage.setItem('timergo-card-pos', JSON.stringify({ x: cardPosX, y: cardPosY }));
+                        }
+                    } else if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
                         profiles = parsed;
                         currentProfileId = Object.keys(profiles)[0];
-                        localStorage.setItem('timergo-current-profile-v2', currentProfileId);
-                        saveProfiles();
-                        renderProfileList();
-                        applyPhase(0, false);
-                        alert('Profiles imported!');
                     }
-                } catch { alert('Invalid JSON file.'); }
+                    localStorage.setItem('timergo-current-profile-v2', currentProfileId);
+                    saveProfiles();
+                    renderProfileList();
+                    applyPhase(0, false);
+                    updateTransform(true);
+                    updateQuotesVisibility();
+                    alert('Data imported successfully!');
+                } catch { alert('Invalid backup file.'); }
             };
             reader.readAsText(file);
             event.target.value = '';
@@ -1566,11 +1955,355 @@
             applyTheme(currentTheme === 'dark' ? 'day' : 'dark');
         }
 
+        // ===== DRAG & ZOOM & POSITIONING =====
+        const mainContainer = document.getElementById('main-container');
+        const appHeader = document.getElementById('app-header');
+        const zoomLabel = document.getElementById('zoom-label');
+
+        // The card-in entrance animation has fill-mode "both", which keeps forcing its
+        // final transform (centered, scale(1)) over any inline `transform` we set from JS
+        // for as long as it's active — silently blocking all drag/zoom. Clear it once it
+        // finishes so drag/zoom take effect immediately after the intro plays.
+        if (mainContainer) {
+            mainContainer.addEventListener('animationend', (e) => {
+                if (e.animationName === 'card-in') {
+                    mainContainer.style.animation = 'none';
+                }
+            }, { once: true });
+        }
+
+        let zoomLevel = 1.0;
+        try {
+            const savedZoom = parseFloat(localStorage.getItem('timergo-zoom'));
+            if (!isNaN(savedZoom) && savedZoom >= 0.5 && savedZoom <= 2.0) {
+                zoomLevel = savedZoom;
+            }
+        } catch (_) {}
+
+        let cardPosX = 0;
+        let cardPosY = 0;
+        try {
+            const savedPos = JSON.parse(localStorage.getItem('timergo-card-pos'));
+            if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number') {
+                cardPosX = savedPos.x;
+                cardPosY = savedPos.y;
+            }
+        } catch (_) {}
+
+        function updateTransform(smooth = false) {
+            if (!mainContainer) return;
+            if (smooth) {
+                mainContainer.classList.add('smooth-transform');
+                setTimeout(() => mainContainer.classList.remove('smooth-transform'), 300);
+            } else {
+                mainContainer.classList.remove('smooth-transform');
+            }
+            mainContainer.style.transform = `translate(calc(-50% + ${cardPosX}px), calc(-50% + ${cardPosY}px)) scale(${zoomLevel})`;
+            if (zoomLabel) {
+                zoomLabel.textContent = `${Math.round(zoomLevel * 100)}%`;
+            }
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(2.0, +(zoomLevel + 0.1).toFixed(2));
+            localStorage.setItem('timergo-zoom', zoomLevel);
+            updateTransform(true);
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
+            localStorage.setItem('timergo-zoom', zoomLevel);
+            updateTransform(true);
+        }
+
+        function zoomReset() {
+            zoomLevel = 1.0;
+            cardPosX = 0;
+            cardPosY = 0;
+            localStorage.setItem('timergo-zoom', zoomLevel);
+            localStorage.removeItem('timergo-card-pos');
+            updateTransform(true);
+        }
+
+        // Mousewheel zoom with Ctrl/Meta
+        window.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) zoomIn();
+                else zoomOut();
+            }
+        }, { passive: false });
+
+        // Drag logic
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let initialCardX = 0;
+        let initialCardY = 0;
+
+        if (appHeader) {
+            appHeader.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button, select, input, label, a')) return;
+                if (e.button !== 0) return; // primary click only
+                isDragging = true;
+                appHeader.classList.add('dragging');
+                mainContainer.classList.remove('smooth-transform');
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                initialCardX = cardPosX;
+                initialCardY = cardPosY;
+                try { appHeader.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+
+            appHeader.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+                cardPosX = initialCardX + dx;
+                cardPosY = initialCardY + dy;
+                // keep card within viewport
+                const limitX = Math.max(80, (window.innerWidth / 2) - 60);
+                const limitY = Math.max(80, (window.innerHeight / 2) - 60);
+                cardPosX = Math.max(-limitX, Math.min(limitX, cardPosX));
+                cardPosY = Math.max(-limitY, Math.min(limitY, cardPosY));
+                updateTransform(false);
+            });
+
+            const finishDrag = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                appHeader.classList.remove('dragging');
+                try { appHeader.releasePointerCapture(e.pointerId); } catch (_) {}
+                localStorage.setItem('timergo-card-pos', JSON.stringify({ x: cardPosX, y: cardPosY }));
+            };
+
+            appHeader.addEventListener('pointerup', finishDrag);
+            appHeader.addEventListener('pointercancel', finishDrag);
+
+            appHeader.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button, select, input, label, a')) return;
+                cardPosX = 0;
+                cardPosY = 0;
+                localStorage.removeItem('timergo-card-pos');
+                updateTransform(true);
+            });
+        }
+
+        // ===== WALLPAPERS =====
+        const bgWallpaper = document.getElementById('bg-wallpaper');
+        const WALLPAPER_PRESETS = {
+            default: '',
+            aurora: 'linear-gradient(135deg, #1a1035, #2d1b69, #11998e)',
+            midnight: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+            crimson: 'linear-gradient(135deg, #200122, #6f0000)',
+            ocean: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)',
+            forest: 'linear-gradient(135deg, #134e5e, #71b280)',
+            sunset: 'linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b)',
+            paper: 'linear-gradient(135deg, #f5f0e8, #e8ddd0, #d4c5b0)'
+        };
+
+        let currentWallpaper = null;
+        try {
+            currentWallpaper = JSON.parse(localStorage.getItem('timergo-wallpaper')) || { type: 'preset', id: 'default' };
+        } catch (_) {
+            currentWallpaper = { type: 'preset', id: 'default' };
+        }
+
+        function applyWallpaper(wp) {
+            currentWallpaper = wp || { type: 'preset', id: 'default' };
+            const swatches = document.querySelectorAll('.wp-swatch');
+            swatches.forEach(s => s.classList.remove('selected'));
+
+            if (!wp || (wp.type === 'preset' && (wp.id === 'default' || !WALLPAPER_PRESETS[wp.id]))) {
+                if (bgWallpaper) {
+                    bgWallpaper.style.background = 'none';
+                    bgWallpaper.classList.remove('active');
+                }
+                document.body.classList.remove('has-custom-wp');
+                const defaultSwatch = document.querySelector('.wp-swatch[data-wp="default"]');
+                if (defaultSwatch) defaultSwatch.classList.add('selected');
+                localStorage.removeItem('timergo-wallpaper');
+                return;
+            }
+
+            if (wp.type === 'preset') {
+                if (bgWallpaper) {
+                    bgWallpaper.style.background = WALLPAPER_PRESETS[wp.id];
+                    bgWallpaper.classList.add('active');
+                }
+                document.body.classList.add('has-custom-wp');
+                const matching = document.querySelector(`.wp-swatch[data-wp="${wp.id}"]`);
+                if (matching) matching.classList.add('selected');
+            } else if (wp.type === 'url' || wp.type === 'data') {
+                if (bgWallpaper) {
+                    bgWallpaper.style.background = `url("${wp.value}") center/cover no-repeat`;
+                    bgWallpaper.classList.add('active');
+                }
+                document.body.classList.add('has-custom-wp');
+            }
+
+            try {
+                localStorage.setItem('timergo-wallpaper', JSON.stringify(currentWallpaper));
+            } catch (err) {
+                console.warn('Storage quota exceeded for wallpaper:', err);
+            }
+        }
+
+        function setWallpaper(id, btn) {
+            applyWallpaper({ type: 'preset', id });
+        }
+
+        function previewWpUrl() {}
+
+        function applyWpUrl() {
+            const input = document.getElementById('wp-url-input');
+            const url = input ? input.value.trim() : '';
+            if (!url) return;
+            applyWallpaper({ type: 'url', value: url });
+        }
+
+        function handleWpFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 3.5 * 1024 * 1024) {
+                alert('Image is too large (max 3MB for local storage). Please use an image URL instead.');
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                applyWallpaper({ type: 'data', value: e.target.result });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function clearWallpaper() {
+            const input = document.getElementById('wp-url-input');
+            if (input) input.value = '';
+            applyWallpaper({ type: 'preset', id: 'default' });
+        }
+
+        // ===== MOTIVATIONAL QUOTES =====
+        const DEFAULT_QUOTES = [
+            "Stay focused. Every minute counts.",
+            "Small steps every day lead to big results.",
+            "Focus on the process, not just the outcome.",
+            "You are capable of amazing things.",
+            "Deep work creates deep value.",
+            "Take a breath. You're doing great.",
+            "Consistency over intensity.",
+            "Action cures fear and fuels progress."
+        ];
+
+        let quotesEnabled = localStorage.getItem('timergo-quotes-enabled') === 'true';
+        let quotesList = DEFAULT_QUOTES;
+        try {
+            const savedQuotes = JSON.parse(localStorage.getItem('timergo-quotes'));
+            if (Array.isArray(savedQuotes) && savedQuotes.length > 0) {
+                quotesList = savedQuotes;
+            }
+        } catch (_) {}
+
+        let currentQuoteIndex = 0;
+        const quoteBar = document.getElementById('quote-bar');
+        const quoteText = document.getElementById('quote-text');
+
+        function updateQuotesVisibility() {
+            if (!quoteBar) return;
+            if (quotesEnabled) {
+                quoteBar.classList.remove('hidden');
+                displayQuote(quotesList[currentQuoteIndex] || DEFAULT_QUOTES[0]);
+            } else {
+                quoteBar.classList.add('hidden');
+            }
+        }
+
+        function displayQuote(text) {
+            if (!quoteText || !quoteBar) return;
+            quoteBar.classList.add('fade');
+            setTimeout(() => {
+                quoteText.textContent = text;
+                quoteBar.classList.remove('fade');
+            }, 180);
+        }
+
+        function nextQuote() {
+            if (!quotesList.length) quotesList = DEFAULT_QUOTES;
+            currentQuoteIndex = (currentQuoteIndex + 1) % quotesList.length;
+            displayQuote(quotesList[currentQuoteIndex]);
+        }
+
+        function toggleQuotes(enabled) {
+            quotesEnabled = enabled;
+            localStorage.setItem('timergo-quotes-enabled', enabled ? 'true' : 'false');
+            updateQuotesVisibility();
+        }
+
+        function saveQuotes() {
+            const textarea = document.getElementById('quotes-input');
+            const lines = textarea ? textarea.value.split('\n').map(l => l.trim()).filter(l => l.length > 0) : [];
+            if (lines.length > 0) {
+                quotesList = lines;
+            } else {
+                quotesList = DEFAULT_QUOTES;
+                if (textarea) textarea.value = DEFAULT_QUOTES.join('\n');
+            }
+            localStorage.setItem('timergo-quotes', JSON.stringify(quotesList));
+            currentQuoteIndex = 0;
+            displayQuote(quotesList[0]);
+
+            const saveBtn = document.querySelector('#drawer button[onclick="saveQuotes()"]');
+            if (saveBtn) {
+                const origText = saveBtn.textContent;
+                saveBtn.textContent = '✓ Saved!';
+                setTimeout(() => { saveBtn.textContent = origText; }, 1500);
+            }
+        }
+
+        function syncAppearanceDrawer() {
+            const toggle = document.getElementById('quotes-enabled');
+            if (toggle) toggle.checked = quotesEnabled;
+            const textarea = document.getElementById('quotes-input');
+            if (textarea) textarea.value = quotesList.join('\n');
+            const wpInput = document.getElementById('wp-url-input');
+            if (wpInput && currentWallpaper && currentWallpaper.type === 'url') {
+                wpInput.value = currentWallpaper.value;
+            }
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.code === 'Escape') {
+                closeSettings();
+                closeLegal();
+            } else if (e.code === 'KeyR') {
+                resetTimer();
+            } else if (e.code === 'KeyS' || e.code === 'ArrowRight') {
+                skipPhase();
+            } else if (e.key === '+' || e.key === '=') {
+                zoomIn();
+            } else if (e.key === '-' || e.key === '_') {
+                zoomOut();
+            } else if (e.key === '0') {
+                zoomReset();
+            }
+        });
+
         // ===== INIT =====
         ringProgress.style.strokeDasharray = RING_CIRCUMFERENCE;
-        applyTheme(currentTheme);  // Apply saved theme first
+        applyTheme(currentTheme);
+        applyWallpaper(currentWallpaper);
+        updateTransform(false);
+        updateQuotesVisibility();
         initProfileSelect();
-        applyPhase(0, false);
+        if (!restoreRuntimeState()) {
+            applyPhase(0, false);
+        }
     </script>
 </body>
 </html>

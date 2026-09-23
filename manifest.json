@@ -2,6 +2,7 @@
   "name": "TimerGo",
   "short_name": "TimerGo",
   "description": "A beautiful, installable Pomodoro & multi-timer app with custom profiles, day/night themes, and sequence automation.",
+  "id": "/",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0b0c14",
@@ -32,7 +33,7 @@
   "screenshots": [
     {
       "src": "og-preview.jpg",
-      "sizes": "1366x768",
+      "sizes": "1200x630",
       "type": "image/jpeg",
       "label": "TimerGo — Dark mode with Pomodoro sequence"
     }
