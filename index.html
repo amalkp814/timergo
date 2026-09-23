@@ -4,427 +4,848 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimerGo</title>
+    <meta name="description" content="A beautiful, installable Pomodoro & multi-timer app with custom profiles.">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
+        /* ===== DESIGN TOKENS ===== */
         :root {
-            --bg-color: #f43f5e;
-            --primary-color: #f43f5e;
+            --accent: #f43f5e;
+            --accent-glow: rgba(244, 63, 94, 0.35);
+            --card-bg: rgba(15, 15, 20, 0.75);
+            --surface: rgba(255, 255, 255, 0.06);
+            --surface-hover: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --radius-lg: 1.5rem;
+            --radius-md: 0.75rem;
+            --radius-sm: 0.5rem;
+            --transition-color: background-color 0.6s cubic-bezier(.4,0,.2,1), color 0.6s ease;
+            --ring-size: 260px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            color: #ffffff;
+            background: var(--accent);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            transition: background-color 0.5s ease;
+            transition: background 0.6s cubic-bezier(.4,0,.2,1);
+            overflow: hidden;
+            position: relative;
         }
 
+        /* Blurred background blobs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.6s ease;
+        }
+        body::before {
+            width: 50vw; height: 50vw;
+            top: -10vw; left: -10vw;
+            background: var(--accent);
+        }
+        body::after {
+            width: 40vw; height: 40vw;
+            bottom: -10vw; right: -10vw;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+
+        .icon-btn {
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .icon-btn:hover { background: rgba(0,0,0,0.45); transform: scale(1.08); }
+        .icon-btn:active { transform: scale(0.94); }
+        .icon-btn svg { width: 1.1rem; height: 1.1rem; }
+
+        /* ===== MAIN CARD ===== */
         .container {
-            max-width: 500px;
-            width: 90%;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            z-index: 10;
+            width: min(420px, 92vw);
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            padding: 2rem 2rem 2.5rem;
             text-align: center;
+            animation: card-in 0.5s cubic-bezier(.22,1,.36,1) both;
         }
 
-        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: 0.05em; }
+        @keyframes card-in {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+        }
+        .logo span { color: var(--accent); }
+
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper::after {
+            content: '⌄';
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-55%);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            line-height: 1;
+        }
 
         select#profile-select {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.5rem 2rem 0.5rem 1rem;
+            appearance: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.4rem 2rem 0.4rem 0.85rem;
             border-radius: 9999px;
             font-family: inherit;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            appearance: none;
             outline: none;
-            text-align: center;
+            transition: background 0.2s;
+            max-width: 150px;
         }
-        
-        .select-wrapper { position: relative; display: inline-block; margin-bottom: 1.5rem; }
-        .select-wrapper::after {
-            content: '▼';
-            font-size: 0.6rem;
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
+        select#profile-select:hover { background: var(--surface-hover); }
 
-        .modes {
+        /* ===== PHASE TABS ===== */
+        .phases-strip {
             display: flex;
             justify-content: center;
+            gap: 0.4rem;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 0.5rem;
-            border-radius: 1.5rem;
+            margin-bottom: 1.75rem;
         }
 
-        .mode-btn {
+        .phase-tab {
             background: transparent;
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.35rem 0.85rem;
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
             font-family: inherit;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .phase-tab:hover { background: var(--surface-hover); color: var(--text-primary); }
+        .phase-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 12px var(--accent-glow);
         }
 
-        .mode-btn:hover { background: rgba(255, 255, 255, 0.1); }
-        .mode-btn.active { background: rgba(0, 0, 0, 0.15); font-weight: 700; box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+        /* ===== PROGRESS RING ===== */
+        .ring-wrapper {
+            position: relative;
+            width: var(--ring-size);
+            height: var(--ring-size);
+            margin: 0 auto 2rem;
+        }
+
+        .progress-ring {
+            width: 100%; height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-track {
+            fill: none;
+            stroke: rgba(255,255,255,0.08);
+            stroke-width: 6;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s linear, stroke 0.6s ease;
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        .ring-inner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
 
         .timer-display {
-            font-size: 5.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--text-primary);
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.05em;
             line-height: 1;
             cursor: pointer;
             transition: opacity 0.2s;
+            user-select: none;
         }
-        .timer-display:hover { opacity: 0.8; }
+        .timer-display:hover { opacity: 0.75; }
 
-        .controls { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+        .phase-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ===== CONTROLS ===== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
 
         .start-btn {
-            background-color: white;
-            color: var(--primary-color);
+            background: var(--accent);
+            color: white;
             border: none;
-            padding: 1rem 2.5rem;
+            padding: 0.9rem 2.75rem;
             border-radius: 9999px;
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            transition: transform 0.1s ease, background-color 0.2s ease, color 0.5s ease;
-            display: flex; align-items: center; gap: 0.5rem; font-family: inherit;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.6s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+            letter-spacing: 0.02em;
         }
-        .start-btn:hover { background-color: #f3f4f6; transform: scale(1.05); }
-        .start-btn:active { transform: scale(0.95); }
+        .start-btn:hover { transform: scale(1.05); box-shadow: 0 12px 32px var(--accent-glow); }
+        .start-btn:active { transform: scale(0.96); }
 
-        .reset-btn {
-            background: transparent; border: 2px solid rgba(255, 255, 255, 0.5);
-            color: white; padding: 0.75rem; border-radius: 9999px; cursor: pointer;
-            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+        .icon-round-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
-        .reset-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: white; transform: scale(1.05); }
-        .reset-btn:active { transform: scale(0.95); }
-        svg { width: 1.25rem; height: 1.25rem; }
-        .reset-btn svg { width: 1.5rem; height: 1.5rem; }
+        .icon-round-btn:hover { background: var(--surface-hover); color: var(--text-primary); transform: scale(1.05); }
+        .icon-round-btn:active { transform: scale(0.94); }
+        .icon-round-btn svg { width: 1.2rem; height: 1.2rem; }
+
         .hidden { display: none !important; }
 
-        /* Toolbar */
-        .toolbar { position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; }
-        .icon-btn {
-            background: rgba(255, 255, 255, 0.2); border: none; color: white;
-            padding: 0.6rem; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+        /* ===== DRAWER ===== */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
-        .icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .drawer-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: min(420px, 100vw);
+            background: #111117;
+            border-left: 1px solid rgba(255,255,255,0.08);
+            z-index: 201;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(.22,1,.36,1);
+            overflow: hidden;
         }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal {
-            background: white; color: #1f2937; padding: 2rem; border-radius: 1rem;
-            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; text-align: left;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        .drawer-overlay.active .drawer { transform: translateX(0); }
+
+        .drawer-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
         }
-        .modal h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
-        .close-btn:hover { color: #4b5563; }
-        
-        .modal-section { margin-bottom: 1.5rem; }
-        .modal-section h3 { font-size: 1rem; margin-bottom: 0.75rem; font-weight: 600; color: #4b5563; }
-        
-        .profile-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-        .profile-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
-        .profile-info { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; font-size: 0.9rem; }
-        .profile-info-subtitle { font-size: 0.75rem; color: #6b7280; font-weight: 400; }
-        .profile-delete { color: #ef4444; cursor: pointer; border: none; background: none; padding: 0.25rem; border-radius: 0.25rem; }
-        .profile-delete:hover { background: #fee2e2; }
+        .drawer-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
 
-        .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
-        .form-group label { font-size: 0.875rem; font-weight: 600; color: #374151; }
-        .form-group input[type="text"], .form-group input[type="number"] { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-family: inherit; font-size: 1rem; }
-        .checkbox-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
-        .checkbox-group input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
-        
-        .color-presets { display: flex; gap: 0.5rem; align-items: center; }
-        .color-preset { width: 2rem; height: 2rem; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
-        .color-preset:hover { transform: scale(1.1); }
-        .color-preset.selected { border-color: #1f2937; }
-        #custom-color { width: 2.2rem; height: 2.2rem; padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; }
+        .drawer-close {
+            background: rgba(255,255,255,0.07);
+            border: none;
+            color: rgba(255,255,255,0.6);
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .drawer-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
-        .btn { padding: 0.6rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; font-family: inherit; transition: background 0.2s; }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
-        .btn-secondary:hover { background: #e5e7eb; }
-        
-        .flex-row { display: flex; gap: 0.5rem; }
-        .mt-1 { margin-top: 1rem; }
-        .w-full { width: 100%; }
-        
-        hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
 
-        /* Builder Styles */
-        .builder-box { background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; margin-bottom: 1rem; }
-        .phase-list { margin-bottom: 1rem; }
-        .phase-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: white; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
-        .phase-item-info { display: flex; align-items: center; gap: 0.5rem; }
-        .phase-color-dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+        /* Drawer scrollbar */
+        .drawer-body::-webkit-scrollbar { width: 4px; }
+        .drawer-body::-webkit-scrollbar-track { background: transparent; }
+        .drawer-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        /* ===== DRAWER SECTIONS ===== */
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 0.75rem;
+        }
+
+        .profile-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .profile-card:hover { background: rgba(255,255,255,0.08); }
+        .profile-card.active-profile { border-color: var(--accent); background: rgba(244,63,94,0.08); }
+
+        .profile-card-left { display: flex; align-items: center; gap: 0.75rem; }
+
+        .profile-card-swatch {
+            display: flex;
+            gap: 2px;
+        }
+        .swatch-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        .profile-card-info .name { font-size: 0.9rem; font-weight: 600; color: #fff; }
+        .profile-card-info .meta { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top: 0.15rem; }
+
+        .profile-delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.25);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: color 0.2s, background 0.2s;
+            display: flex;
+        }
+        .profile-delete-btn:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+        /* ===== BUILDER ===== */
+        .builder-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        .builder-card .section-label { margin-bottom: 1rem; }
+
+        .field-group { margin-bottom: 0.85rem; }
+        .field-group label { display: block; font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 0.35rem; }
+        .field-group input[type="text"],
+        .field-group input[type="number"] {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 0.55rem 0.75rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .field-group input:focus { border-color: var(--accent); }
+        .field-group input::placeholder { color: rgba(255,255,255,0.25); }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .toggle-row:last-of-type { border-bottom: none; }
+        .toggle-label { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.7); }
+
+        /* Toggle switch */
+        .toggle { position: relative; width: 2.5rem; height: 1.4rem; }
+        .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .toggle-track {
+            position: absolute; inset: 0;
+            background: rgba(255,255,255,0.12);
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 1rem; height: 1rem;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s cubic-bezier(.22,1,.36,1);
+        }
+        .toggle input:checked + .toggle-track { background: var(--accent); }
+        .toggle input:checked + .toggle-track::after { transform: translateX(1.1rem); }
+
+        .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0.5rem 0; }
+
+        /* Phase builder row */
+        .phase-builder-inputs {
+            display: grid;
+            grid-template-columns: 1fr 80px;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .color-swatches { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; }
+        .swatch-btn {
+            width: 1.75rem; height: 1.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .swatch-btn:hover { transform: scale(1.15); }
+        .swatch-btn.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+        .swatch-btn.custom-swatch { background: conic-gradient(red, orange, yellow, green, blue, violet, red); border-radius: 50%; overflow: hidden; }
+        .swatch-btn.custom-swatch input[type="color"] { width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+        .draft-phase-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+        .draft-phase-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);
+        }
+        .draft-phase-item-left { display: flex; align-items: center; gap: 0.5rem; }
+        .draft-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; flex-shrink: 0; }
+        .draft-remove {
+            background: none; border: none; color: rgba(255,255,255,0.3);
+            cursor: pointer; padding: 0.1rem; font-size: 0.9rem; line-height: 1;
+            transition: color 0.2s;
+        }
+        .draft-remove:hover { color: #ef4444; }
+
+        /* Buttons inside drawer */
+        .drawer-btn {
+            width: 100%;
+            padding: 0.65rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .drawer-btn-ghost {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .drawer-btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .drawer-btn-accent {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .drawer-btn-accent:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+
+        .drawer-btn-row { display: flex; gap: 0.5rem; }
+        .drawer-btn-row .drawer-btn { flex: 1; }
+
+        /* ===== COMPLETION FLASH ===== */
+        @keyframes flash-done {
+            0%   { opacity: 0; }
+            20%  { opacity: 1; }
+            80%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .done-flash {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.12);
+            pointer-events: none;
+            z-index: 500;
+            animation: flash-done 1.5s ease forwards;
+        }
+
+        /* Small icons within text flow */
+        svg.inline-icon { width: 1rem; height: 1rem; vertical-align: -2px; }
     </style>
 </head>
 <body>
+
+    <!-- Toolbar -->
     <div class="toolbar">
         <button class="icon-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
-            <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+            </svg>
         </button>
         <button class="icon-btn" onclick="openSettings()" title="Settings">
-            <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
         </button>
     </div>
 
+    <!-- Main Card -->
     <div class="container">
-        <h1>TimerGo</h1>
-
-        <div class="select-wrapper">
-            <select id="profile-select"></select>
+        <!-- Header -->
+        <div class="app-header">
+            <div class="logo">Timer<span>Go</span></div>
+            <div class="select-wrapper">
+                <select id="profile-select"></select>
+            </div>
         </div>
 
-        <div class="modes" id="phases-container">
-            <!-- Phase buttons rendered here -->
+        <!-- Phase tabs -->
+        <div class="phases-strip" id="phases-container"></div>
+
+        <!-- SVG Progress Ring -->
+        <div class="ring-wrapper">
+            <svg class="progress-ring" viewBox="0 0 260 260" aria-hidden="true">
+                <circle class="ring-track" cx="130" cy="130" r="118"/>
+                <circle class="ring-progress" id="ring-progress" cx="130" cy="130" r="118"
+                    stroke-dasharray="741.4"
+                    stroke-dashoffset="0"/>
+            </svg>
+            <div class="ring-inner">
+                <div class="timer-display" id="timer-display" onclick="editTimer()" title="Click to edit">25:00</div>
+                <div class="phase-label" id="phase-label">Work</div>
+            </div>
         </div>
 
-        <div class="timer-display" id="timer-display" onclick="editTimer()" title="Click to edit timer">
-            00:00
-        </div>
-
+        <!-- Controls -->
         <div class="controls">
+            <button class="icon-round-btn" onclick="skipPhase()" title="Skip to next phase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="5 4 15 12 5 20"/>
+                    <line x1="19" y1="4" x2="19" y2="20"/>
+                </svg>
+            </button>
+
             <button id="start-btn" class="start-btn" onclick="toggleTimer()">
-                <svg id="play-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
-                <svg id="pause-icon" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/></svg>
+                <svg id="play-icon" fill="currentColor" viewBox="0 0 20 20" style="width:1.1rem;height:1.1rem">
+                    <path d="M4 4l12 6-12 6z"/>
+                </svg>
+                <svg id="pause-icon" class="hidden" fill="currentColor" viewBox="0 0 20 20" style="width:1.1rem;height:1.1rem">
+                    <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/>
+                </svg>
                 <span id="start-text">Start</span>
             </button>
-            <button class="reset-btn" onclick="resetTimer()" title="Reset Phase">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+
+            <button class="icon-round-btn" onclick="resetTimer()" title="Reset phase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 4v6h6M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                </svg>
             </button>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <h2>Settings <button class="close-btn" onclick="closeSettings()">&times;</button></h2>
-            
-            <div class="modal-section">
-                <h3>Your Profiles</h3>
-                <div class="profile-list" id="profile-list">
-                    <!-- Profile items rendered here -->
-                </div>
+    <!-- Settings Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="handleOverlayClick(event)">
+        <div class="drawer" id="drawer">
+            <div class="drawer-header">
+                <span class="drawer-title">Settings</span>
+                <button class="drawer-close" onclick="closeSettings()">&#x2715;</button>
             </div>
+            <div class="drawer-body">
 
-            <div class="modal-section builder-box">
-                <h3>Build New Profile</h3>
-                
-                <div class="form-group">
-                    <label>Profile Name</label>
-                    <input type="text" id="new-profile-name" placeholder="e.g. Pomodoro Flow">
+                <!-- Profile List -->
+                <div>
+                    <div class="section-label">Your Profiles</div>
+                    <div id="profile-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
                 </div>
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="new-profile-autostart" checked>
-                    <label for="new-profile-autostart" style="margin:0;cursor:pointer;">Auto-start next phase</label>
-                </div>
+                <!-- Profile Builder -->
+                <div class="builder-card">
+                    <div class="section-label">Build New Profile</div>
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="new-profile-loop" checked>
-                    <label for="new-profile-loop" style="margin:0;cursor:pointer;">Loop sequence</label>
-                </div>
-
-                <hr style="margin: 1rem 0;">
-
-                <div class="phase-list" id="new-phase-list">
-                    <!-- Draft phases -->
-                </div>
-
-                <div style="background: white; padding: 1rem; border-radius: 0.5rem; border: 1px dashed #d1d5db; margin-bottom: 1rem;">
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <input type="text" id="new-phase-name" placeholder="Phase Name (e.g. Work)">
+                    <div class="field-group">
+                        <label>Profile Name</label>
+                        <input type="text" id="new-profile-name" placeholder="e.g. Pomodoro Flow">
                     </div>
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <input type="number" id="new-phase-time" placeholder="Duration (mins)" min="0.1" step="0.1">
+
+                    <div class="toggle-row">
+                        <span class="toggle-label">Auto-start next phase</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="new-profile-autostart" checked>
+                            <span class="toggle-track"></span>
+                        </label>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0.75rem;">
-                        <div class="color-presets">
-                            <div class="color-preset selected" style="background: #f43f5e" onclick="selectColor(this, '#f43f5e')"></div>
-                            <div class="color-preset" style="background: #14b8a6" onclick="selectColor(this, '#14b8a6')"></div>
-                            <div class="color-preset" style="background: #3b82f6" onclick="selectColor(this, '#3b82f6')"></div>
-                            <div class="color-preset" style="background: #f59e0b" onclick="selectColor(this, '#f59e0b')"></div>
-                            <div class="color-preset" style="background: #8b5cf6" onclick="selectColor(this, '#8b5cf6')"></div>
-                            <input type="color" id="custom-color" value="#f43f5e" onchange="selectColor(null, this.value)" title="Custom Color">
-                        </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Loop sequence</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="new-profile-loop" checked>
+                            <span class="toggle-track"></span>
+                        </label>
                     </div>
-                    <button class="btn btn-secondary w-full" onclick="addDraftPhase()">+ Add Phase</button>
+
+                    <div class="divider" style="margin: 1rem 0;"></div>
+
+                    <!-- Draft phases list -->
+                    <div class="draft-phase-list" id="new-phase-list"></div>
+
+                    <!-- Phase adder -->
+                    <div class="phase-builder-inputs">
+                        <input type="text" id="new-phase-name" placeholder="Phase name (e.g. Work)"
+                            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:inherit;font-size:0.85rem;padding:0.5rem 0.65rem;border-radius:0.5rem;outline:none;width:100%;transition:border-color 0.2s;"
+                            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <input type="number" id="new-phase-time" placeholder="Mins" min="0.1" step="0.1"
+                            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:inherit;font-size:0.85rem;padding:0.5rem 0.65rem;border-radius:0.5rem;outline:none;width:100%;transition:border-color 0.2s;"
+                            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    </div>
+
+                    <div class="color-swatches" id="color-swatches">
+                        <button class="swatch-btn selected" style="background:#f43f5e" data-color="#f43f5e" onclick="selectColor(this,'#f43f5e')"></button>
+                        <button class="swatch-btn" style="background:#14b8a6" data-color="#14b8a6" onclick="selectColor(this,'#14b8a6')"></button>
+                        <button class="swatch-btn" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this,'#3b82f6')"></button>
+                        <button class="swatch-btn" style="background:#f59e0b" data-color="#f59e0b" onclick="selectColor(this,'#f59e0b')"></button>
+                        <button class="swatch-btn" style="background:#8b5cf6" data-color="#8b5cf6" onclick="selectColor(this,'#8b5cf6')"></button>
+                        <button class="swatch-btn" style="background:#ec4899" data-color="#ec4899" onclick="selectColor(this,'#ec4899')"></button>
+                        <button class="swatch-btn" style="background:#10b981" data-color="#10b981" onclick="selectColor(this,'#10b981')"></button>
+                        <label class="swatch-btn custom-swatch" title="Custom color">
+                            <input type="color" id="custom-color" value="#f43f5e" oninput="selectColor(null,this.value)">
+                        </label>
+                    </div>
+
+                    <div class="drawer-btn-row" style="margin-bottom:0.75rem;">
+                        <button class="drawer-btn drawer-btn-ghost" onclick="addDraftPhase()">+ Add Phase</button>
+                    </div>
+                    <button class="drawer-btn drawer-btn-accent" onclick="saveNewProfile()">Save Profile</button>
                 </div>
 
-                <button class="btn btn-primary w-full" onclick="saveNewProfile()">Save Profile</button>
-            </div>
-
-            <hr>
-            
-            <div class="modal-section">
-                <h3>Data Management</h3>
-                <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem;">Backup or restore your custom profiles.</p>
-                <div class="flex-row">
-                    <button class="btn btn-secondary w-full" onclick="exportData()">Export JSON</button>
-                    <button class="btn btn-secondary w-full" onclick="document.getElementById('import-file').click()">Import JSON</button>
-                    <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+                <!-- Data management -->
+                <div>
+                    <div class="section-label">Data</div>
+                    <div class="drawer-btn-row">
+                        <button class="drawer-btn drawer-btn-ghost" onclick="exportData()">
+                            ↓ Export
+                        </button>
+                        <button class="drawer-btn drawer-btn-ghost" onclick="document.getElementById('import-file').click()">
+                            ↑ Import
+                        </button>
+                    </div>
+                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
                 </div>
+
             </div>
         </div>
     </div>
 
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
-            });
+            window.addEventListener('load', () =>
+                navigator.serviceWorker.register('sw.js').catch(() => {})
+            );
         }
 
-        // --- Data & State Migration ---
+        // ===== CONSTANTS =====
+        const RING_CIRCUMFERENCE = 2 * Math.PI * 118; // ~741.4
+
+        // ===== DATA =====
         const defaultProfiles = {
-            'pomodoro': {
+            pomodoro: {
                 name: 'Classic Pomodoro',
                 autoStart: true,
                 loop: true,
                 sequence: [
-                    { name: 'Work', time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Short Break', time: 5 * 60, color: '#14b8a6' },
-                    { name: 'Work', time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Short Break', time: 5 * 60, color: '#14b8a6' },
-                    { name: 'Work', time: 25 * 60, color: '#f43f5e' },
-                    { name: 'Long Break', time: 15 * 60, color: '#3b82f6' }
+                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
+                    { name: 'Short Break', time:  5 * 60, color: '#14b8a6' },
+                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
+                    { name: 'Short Break', time:  5 * 60, color: '#14b8a6' },
+                    { name: 'Work',        time: 25 * 60, color: '#f43f5e' },
+                    { name: 'Long Break',  time: 15 * 60, color: '#3b82f6' },
                 ]
             }
         };
 
         let profiles = null;
-        try {
-            const raw = localStorage.getItem('timergo-profiles-v2');
-            if (raw) profiles = JSON.parse(raw);
-        } catch(e) {}
-
-        if (!profiles) {
-            profiles = defaultProfiles;
-        }
+        try { const r = localStorage.getItem('timergo-profiles-v2'); if (r) profiles = JSON.parse(r); } catch(e) {}
+        if (!profiles) profiles = defaultProfiles;
 
         let currentProfileId = localStorage.getItem('timergo-current-profile-v2') || 'pomodoro';
-        if (!profiles[currentProfileId]) currentProfileId = Object.keys(profiles)[0] || 'pomodoro';
-        
+        if (!profiles[currentProfileId]) currentProfileId = Object.keys(profiles)[0];
+
         let currentPhaseIndex = 0;
         let timeLeft = 0;
-
+        let totalPhaseTime = 0;
         let timerId = null;
         let isRunning = false;
         let endTime = null;
         let audioCtx = null;
-        
         let draftPhases = [];
         let selectedNewColor = '#f43f5e';
 
-        const display = document.getElementById('timer-display');
-        const startBtnText = document.getElementById('start-text');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-        const root = document.documentElement;
-        const profileSelect = document.getElementById('profile-select');
+        // ===== DOM REFS =====
+        const display        = document.getElementById('timer-display');
+        const phaseLabel     = document.getElementById('phase-label');
+        const startBtnText   = document.getElementById('start-text');
+        const playIcon       = document.getElementById('play-icon');
+        const pauseIcon      = document.getElementById('pause-icon');
+        const ringProgress   = document.getElementById('ring-progress');
+        const profileSelect  = document.getElementById('profile-select');
+        const root           = document.documentElement;
 
-        // --- Core Timer Logic ---
+        // ===== AUDIO =====
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             requestNotificationPermission();
         }
 
+        function playChime() {
+            try {
+                if (!audioCtx) return;
+                const t = audioCtx.currentTime;
+                [880, 1100, 1320].forEach((freq, i) => {
+                    const osc  = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, t + i * 0.18);
+                    gain.gain.linearRampToValueAtTime(0.35, t + i * 0.18 + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.8);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(t + i * 0.18);
+                    osc.stop(t + i * 0.18 + 0.8);
+                });
+            } catch(e) {}
+        }
+
+        // ===== TIMER CORE =====
         function getActivePhase() {
             const p = profiles[currentProfileId];
-            if (!p || !p.sequence || p.sequence.length === 0) return null;
+            if (!p || !p.sequence || !p.sequence.length) return null;
             return p.sequence[currentPhaseIndex];
         }
 
         function updateDisplay() {
             const t = Math.max(0, timeLeft);
-            const minutes = Math.floor(t / 60);
-            const seconds = t % 60;
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            display.textContent = timeString;
-            
+            const m = Math.floor(t / 60);
+            const s = t % 60;
+            const str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            display.textContent = str;
+
+            // Update ring
+            const pct = totalPhaseTime > 0 ? t / totalPhaseTime : 1;
+            ringProgress.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - pct);
+
             const phase = getActivePhase();
-            const phaseName = phase ? phase.name : 'Timer';
-            document.title = `${timeString} - ${phaseName} | TimerGo`;
+            document.title = `${str} — ${phase ? phase.name : 'TimerGo'} | TimerGo`;
         }
 
-        function playChime() {
-            try {
-                if (!audioCtx) initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 1);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 1);
-            } catch (e) {}
+        function setAccent(color) {
+            root.style.setProperty('--accent', color);
+            // Derive glow
+            root.style.setProperty('--accent-glow', hexToGlow(color));
+            document.body.style.background = color;
+            ringProgress.style.stroke = color;
         }
 
-        function advancePhase() {
-            const p = profiles[currentProfileId];
-            if (!p) return;
-            
-            currentPhaseIndex++;
-            if (currentPhaseIndex >= p.sequence.length) {
-                if (p.loop) {
-                    currentPhaseIndex = 0;
-                } else {
-                    currentPhaseIndex = p.sequence.length - 1; // Stay on last phase
-                    resetTimer();
-                    return;
-                }
-            }
-            
-            applyPhase(currentPhaseIndex, p.autoStart);
+        function hexToGlow(hex) {
+            // Parse and return rgba with 35% opacity
+            const r = parseInt(hex.slice(1,3),16);
+            const g = parseInt(hex.slice(3,5),16);
+            const b = parseInt(hex.slice(5,7),16);
+            return `rgba(${r},${g},${b},0.4)`;
         }
 
         function toggleTimer() {
@@ -435,36 +856,29 @@
             if (isRunning) {
                 clearInterval(timerId);
                 isRunning = false;
-                timeLeft = Math.round((endTime - Date.now()) / 1000);
-                if (timeLeft < 0) timeLeft = 0;
+                timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
                 setStartBtnState(false);
                 updateDisplay();
             } else {
                 if (timeLeft <= 0) timeLeft = phase.time;
                 isRunning = true;
-                endTime = Date.now() + (timeLeft * 1000);
+                endTime = Date.now() + timeLeft * 1000;
                 setStartBtnState(true);
                 updateDisplay();
-                
+
                 timerId = setInterval(() => {
-                    const now = Date.now();
-                    timeLeft = Math.round((endTime - now) / 1000);
+                    timeLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+                    updateDisplay();
                     if (timeLeft <= 0) {
-                        timeLeft = 0;
-                        updateDisplay();
                         clearInterval(timerId);
                         isRunning = false;
                         playChime();
                         sendNotification();
                         setStartBtnState(false);
-                        
+                        flashDone();
                         setTimeout(() => {
-                            if (!isRunning && timeLeft <= 0) {
-                                advancePhase();
-                            }
+                            if (!isRunning && timeLeft <= 0) advancePhase();
                         }, 2000);
-                    } else {
-                        updateDisplay();
                     }
                 }, 100);
             }
@@ -482,29 +896,88 @@
             }
         }
 
+        function flashDone() {
+            const el = document.createElement('div');
+            el.className = 'done-flash';
+            document.body.appendChild(el);
+            el.addEventListener('animationend', () => el.remove());
+        }
+
         function resetTimer() {
             clearInterval(timerId);
             isRunning = false;
             const phase = getActivePhase();
             timeLeft = phase ? phase.time : 25 * 60;
+            totalPhaseTime = timeLeft;
             setStartBtnState(false);
             updateDisplay();
         }
 
+        function skipPhase() {
+            clearInterval(timerId);
+            isRunning = false;
+            setStartBtnState(false);
+            advancePhase();
+        }
+
         function editTimer() {
             if (isRunning) toggleTimer();
-            const currentMins = Math.ceil(timeLeft / 60);
-            const input = prompt("Enter new time in minutes:", currentMins);
+            const curMins = Math.ceil(timeLeft / 60) || 1;
+            const input = prompt('Enter new time in minutes:', curMins);
             if (input !== null) {
                 const mins = parseFloat(input);
                 if (!isNaN(mins) && mins > 0) {
                     timeLeft = Math.round(mins * 60);
+                    totalPhaseTime = timeLeft;
                     updateDisplay();
                 }
             }
         }
 
-        // --- Profile & Phase Management ---
+        function advancePhase() {
+            const p = profiles[currentProfileId];
+            if (!p) return;
+            let next = currentPhaseIndex + 1;
+            if (next >= p.sequence.length) {
+                if (p.loop) next = 0;
+                else { resetTimer(); return; }
+            }
+            applyPhase(next, p.autoStart);
+        }
+
+        // ===== PROFILE / PHASE =====
+        function applyPhase(index, autoStart = false) {
+            const p = profiles[currentProfileId];
+            if (!p || !p.sequence || !p.sequence.length) return;
+            currentPhaseIndex = index;
+            const phase = p.sequence[index];
+            totalPhaseTime = phase.time;
+
+            setAccent(phase.color);
+            phaseLabel.textContent = phase.name;
+            renderPhases();
+            resetTimer();
+
+            if (autoStart) toggleTimer();
+        }
+
+        function renderPhases() {
+            const c = document.getElementById('phases-container');
+            c.innerHTML = '';
+            const p = profiles[currentProfileId];
+            if (!p) return;
+            p.sequence.forEach((phase, i) => {
+                const btn = document.createElement('button');
+                btn.className = `phase-tab${i === currentPhaseIndex ? ' active' : ''}`;
+                btn.textContent = phase.name;
+                btn.onclick = () => {
+                    if (isRunning) toggleTimer();
+                    applyPhase(i, false);
+                };
+                c.appendChild(btn);
+            });
+        }
+
         function initProfileSelect() {
             profileSelect.innerHTML = '';
             Object.keys(profiles).forEach(key => {
@@ -516,53 +989,14 @@
             profileSelect.value = currentProfileId;
         }
 
-        profileSelect.addEventListener('change', (e) => {
-            setProfile(e.target.value);
-        });
-
-        function setProfile(profileKey) {
-            if (!profiles[profileKey]) return;
-            currentProfileId = profileKey;
+        profileSelect.addEventListener('change', e => {
+            clearInterval(timerId);
+            isRunning = false;
+            currentProfileId = e.target.value;
             currentPhaseIndex = 0;
             localStorage.setItem('timergo-current-profile-v2', currentProfileId);
             applyPhase(0, false);
-        }
-
-        function applyPhase(index, autoStart = false) {
-            const profile = profiles[currentProfileId];
-            if (!profile || !profile.sequence || profile.sequence.length === 0) return;
-            
-            currentPhaseIndex = index;
-            const phase = profile.sequence[index];
-            
-            root.style.setProperty('--bg-color', phase.color);
-            root.style.setProperty('--primary-color', phase.color);
-
-            renderPhases();
-            resetTimer();
-            
-            if (autoStart) {
-                toggleTimer();
-            }
-        }
-
-        function renderPhases() {
-            const container = document.getElementById('phases-container');
-            container.innerHTML = '';
-            const profile = profiles[currentProfileId];
-            if (!profile) return;
-            
-            profile.sequence.forEach((phase, index) => {
-                const btn = document.createElement('button');
-                btn.className = `mode-btn ${currentPhaseIndex === index ? 'active' : ''}`;
-                btn.textContent = phase.name;
-                btn.onclick = () => {
-                    if(isRunning) toggleTimer();
-                    applyPhase(index, false);
-                };
-                container.appendChild(btn);
-            });
-        }
+        });
 
         function saveProfiles() {
             localStorage.setItem('timergo-profiles-v2', JSON.stringify(profiles));
@@ -570,19 +1004,21 @@
             renderPhases();
         }
 
-        // --- Settings UI ---
+        // ===== SETTINGS DRAWER =====
         function openSettings() {
-            document.getElementById('settings-modal').classList.add('active');
+            document.getElementById('drawer-overlay').classList.add('active');
             renderProfileList();
-            
-            // Reset builder
             document.getElementById('new-profile-name').value = '';
             draftPhases = [];
             renderDraftPhases();
         }
 
         function closeSettings() {
-            document.getElementById('settings-modal').classList.remove('active');
+            document.getElementById('drawer-overlay').classList.remove('active');
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('drawer-overlay')) closeSettings();
         }
 
         function renderProfileList() {
@@ -590,62 +1026,75 @@
             list.innerHTML = '';
             Object.keys(profiles).forEach(key => {
                 const p = profiles[key];
-                const totalSec = p.sequence.reduce((acc, curr) => acc + curr.time, 0);
-                const subtitle = `${p.sequence.length} phases • ${Math.round(totalSec / 60)}m total`;
-                
-                list.innerHTML += `
-                    <div class="profile-item">
-                        <div class="profile-info">
-                            <div>${p.name}</div>
-                            <div class="profile-info-subtitle">${subtitle}</div>
+                const totalSec = p.sequence.reduce((a, b) => a + b.time, 0);
+                const swatches = [...new Map(p.sequence.map(ph => [ph.color, ph])).values()]
+                    .slice(0, 4)
+                    .map(ph => `<div class="swatch-dot" style="background:${ph.color}"></div>`)
+                    .join('');
+
+                const card = document.createElement('div');
+                card.className = `profile-card${key === currentProfileId ? ' active-profile' : ''}`;
+                card.innerHTML = `
+                    <div class="profile-card-left">
+                        <div class="profile-card-swatch">${swatches}</div>
+                        <div class="profile-card-info">
+                            <div class="name">${p.name}</div>
+                            <div class="meta">${p.sequence.length} phases · ${Math.round(totalSec/60)}m total</div>
                         </div>
-                        <button class="profile-delete" onclick="deleteProfile('${key}')" title="Delete">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
                     </div>
+                    <button class="profile-delete-btn" onclick="deleteProfile('${key}',event)" title="Delete">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </button>
                 `;
+                card.querySelector('.profile-card-left').onclick = () => {
+                    clearInterval(timerId); isRunning = false;
+                    currentProfileId = key;
+                    currentPhaseIndex = 0;
+                    localStorage.setItem('timergo-current-profile-v2', currentProfileId);
+                    initProfileSelect();
+                    applyPhase(0, false);
+                    closeSettings();
+                };
+                list.appendChild(card);
             });
         }
 
-        function selectColor(element, color) {
+        function selectColor(el, color) {
             selectedNewColor = color;
-            document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('selected'));
-            if (element) {
-                element.classList.add('selected');
-            } else {
-                document.getElementById('custom-color').value = color;
-            }
+            document.querySelectorAll('.swatch-btn:not(.custom-swatch)').forEach(b => b.classList.remove('selected'));
+            if (el && !el.classList.contains('custom-swatch')) el.classList.add('selected');
+            document.getElementById('custom-color').value = color;
         }
 
         function addDraftPhase() {
-            const nameInput = document.getElementById('new-phase-name');
-            const timeInput = document.getElementById('new-phase-time');
-            const name = nameInput.value.trim();
-            const mins = parseFloat(timeInput.value);
-            
-            if (name && !isNaN(mins) && mins > 0) {
-                draftPhases.push({ name: name, time: Math.round(mins * 60), color: selectedNewColor });
-                renderDraftPhases();
-                nameInput.value = '';
-                timeInput.value = '';
-            } else {
-                alert("Please enter a valid phase name and duration.");
+            const name = document.getElementById('new-phase-name').value.trim();
+            const mins = parseFloat(document.getElementById('new-phase-time').value);
+            if (!name || isNaN(mins) || mins <= 0) {
+                alert('Enter a valid phase name and duration.');
+                return;
             }
+            draftPhases.push({ name, time: Math.round(mins * 60), color: selectedNewColor });
+            renderDraftPhases();
+            document.getElementById('new-phase-name').value = '';
+            document.getElementById('new-phase-time').value = '';
         }
 
         function renderDraftPhases() {
             const list = document.getElementById('new-phase-list');
             list.innerHTML = '';
-            draftPhases.forEach((phase, idx) => {
-                list.innerHTML += `
-                    <div class="phase-item">
-                        <div class="phase-item-info">
-                            <div class="phase-color-dot" style="background: ${phase.color}"></div>
-                            ${phase.name} (${Math.round(phase.time / 60)}m)
-                        </div>
-                        <button class="phase-delete" onclick="removeDraftPhase(${idx})">✖</button>
+            draftPhases.forEach((ph, idx) => {
+                const item = document.createElement('div');
+                item.className = 'draft-phase-item';
+                item.innerHTML = `
+                    <div class="draft-phase-item-left">
+                        <div class="draft-dot" style="background:${ph.color}"></div>
+                        ${ph.name} <span style="color:rgba(255,255,255,0.4);margin-left:0.25rem">${Math.round(ph.time/60)}m</span>
                     </div>
+                    <button class="draft-remove" onclick="removeDraftPhase(${idx})">✕</button>
                 `;
+                list.appendChild(item);
             });
         }
 
@@ -658,59 +1107,50 @@
             const name = document.getElementById('new-profile-name').value.trim();
             const autoStart = document.getElementById('new-profile-autostart').checked;
             const loop = document.getElementById('new-profile-loop').checked;
-
-            if (!name) return alert("Please enter a profile name.");
-            if (draftPhases.length === 0) return alert("Please add at least one phase.");
+            if (!name) return alert('Enter a profile name.');
+            if (!draftPhases.length) return alert('Add at least one phase.');
 
             const key = 'custom_' + Date.now();
-            profiles[key] = {
-                name: name,
-                autoStart: autoStart,
-                loop: loop,
-                sequence: [...draftPhases]
-            };
-            
+            profiles[key] = { name, autoStart, loop, sequence: [...draftPhases] };
             saveProfiles();
-            renderProfileList();
-            
-            // Switch to it immediately
-            setProfile(key);
+
+            clearInterval(timerId); isRunning = false;
+            currentProfileId = key;
+            currentPhaseIndex = 0;
+            localStorage.setItem('timergo-current-profile-v2', currentProfileId);
+            applyPhase(0, false);
             closeSettings();
         }
 
-        function deleteProfile(key) {
-            if (Object.keys(profiles).length <= 1) {
-                alert("You must have at least one profile.");
-                return;
+        function deleteProfile(key, e) {
+            e.stopPropagation();
+            if (Object.keys(profiles).length <= 1) { alert('Must keep at least one profile.'); return; }
+            if (!confirm(`Delete "${profiles[key].name}"?`)) return;
+            delete profiles[key];
+            if (currentProfileId === key) {
+                currentProfileId = Object.keys(profiles)[0];
+                localStorage.setItem('timergo-current-profile-v2', currentProfileId);
+                applyPhase(0, false);
             }
-            if (confirm(`Delete profile "${profiles[key].name}"?`)) {
-                delete profiles[key];
-                if (currentProfileId === key) {
-                    currentProfileId = Object.keys(profiles)[0];
-                    localStorage.setItem('timergo-current-profile-v2', currentProfileId);
-                    applyPhase(0, false);
-                }
-                saveProfiles();
-                renderProfileList();
-            }
+            saveProfiles();
+            renderProfileList();
         }
 
-        // --- Import/Export ---
+        // ===== IMPORT / EXPORT =====
         function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profiles));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "timergo_profiles_v2.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            const blob = new Blob([JSON.stringify(profiles, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'timergo_profiles.json';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = e => {
                 try {
                     const parsed = JSON.parse(e.target.result);
                     if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
@@ -720,43 +1160,40 @@
                         saveProfiles();
                         renderProfileList();
                         applyPhase(0, false);
-                        alert("Profiles imported successfully!");
+                        alert('Profiles imported!');
                     }
-                } catch (err) {
-                    alert("Invalid JSON file.");
-                }
+                } catch { alert('Invalid JSON file.'); }
             };
             reader.readAsText(file);
             event.target.value = '';
         }
 
-        // --- Notifications & Fullscreen ---
+        // ===== NOTIFICATIONS / FULLSCREEN =====
         function requestNotificationPermission() {
-            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
         }
 
         function sendNotification() {
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("TimerGo", {
-                    body: "Time's up! Moving to next phase...",
-                    icon: "icon.svg"
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('TimerGo', {
+                    body: "Time's up! Moving to next phase…",
+                    icon: 'icon.svg'
                 });
             }
         }
 
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Fullscreen error: ${err.message}`);
-                });
+                document.documentElement.requestFullscreen().catch(() => {});
             } else {
                 document.exitFullscreen();
             }
         }
 
-        // --- Initialization ---
+        // ===== INIT =====
+        ringProgress.style.strokeDasharray = RING_CIRCUMFERENCE;
         initProfileSelect();
         applyPhase(0, false);
     </script>
