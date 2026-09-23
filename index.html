@@ -3,10 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimerGo</title>
-    <meta name="description" content="A beautiful, installable Pomodoro & multi-timer app with custom profiles.">
+
+    <!-- ===== Primary SEO ===== -->
+    <title>TimerGo — Beautiful Pomodoro &amp; Focus Timer</title>
+    <meta name="description" content="TimerGo is a free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation. Runs entirely in your browser — no account required.">
+    <meta name="keywords" content="pomodoro timer, focus timer, productivity, work timer, break timer, time management, PWA, installable app">
+    <meta name="author" content="TimerGo Contributors">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://amalkp814.github.io/timergo/">
+
+    <!-- ===== Open Graph (Facebook, LinkedIn, WhatsApp, Telegram, Discord) ===== -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://amalkp814.github.io/timergo/">
+    <meta property="og:title" content="TimerGo — Beautiful Pomodoro &amp; Focus Timer">
+    <meta property="og:description" content="Free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation. No account required.">
+    <meta property="og:image" content="https://amalkp814.github.io/timergo/og-preview.jpg">
+    <meta property="og:image:width" content="1366">
+    <meta property="og:image:height" content="768">
+    <meta property="og:image:alt" content="TimerGo app preview showing the circular timer with Pomodoro sequence">
+    <meta property="og:site_name" content="TimerGo">
+    <meta property="og:locale" content="en_US">
+
+    <!-- ===== Twitter Card ===== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://amalkp814.github.io/timergo/">
+    <meta name="twitter:title" content="TimerGo — Beautiful Pomodoro &amp; Focus Timer">
+    <meta name="twitter:description" content="Free, installable Pomodoro &amp; multi-timer app with custom profiles, day/night themes, and sequence automation.">
+    <meta name="twitter:image" content="https://amalkp814.github.io/timergo/og-preview.jpg">
+    <meta name="twitter:image:alt" content="TimerGo app preview">
+
+    <!-- ===== PWA ===== -->
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg">
+    <meta name="theme-color" content="#e05c74">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TimerGo">
+
+    <!-- ===== Favicon / Icons ===== -->
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
+
+    <!-- ===== Fonts ===== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -682,6 +720,71 @@
         .drawer-btn-row { display: flex; gap: 0.5rem; }
         .drawer-btn-row .drawer-btn { flex: 1; }
 
+        /* ===== LEGAL MODAL ===== */
+        .legal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            z-index: 300;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .legal-overlay.active { opacity: 1; pointer-events: auto; }
+        .legal-sheet {
+            background: var(--drawer-bg);
+            border: 1px solid var(--drawer-border);
+            border-radius: 1.75rem 1.75rem 0 0;
+            width: 100%;
+            max-width: 620px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+            overflow: hidden;
+        }
+        .legal-overlay.active .legal-sheet { transform: translateY(0); }
+        .legal-sheet-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--drawer-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .legal-sheet-title { font-size: 1rem; font-weight: 700; color: var(--drawer-title); }
+        .legal-sheet-body {
+            padding: 1.25rem 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            color: var(--text-secondary);
+        }
+        .legal-sheet-body h3 {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin: 1.25rem 0 0.5rem;
+        }
+        .legal-sheet-body h3:first-child { margin-top: 0; }
+        .legal-sheet-body p { margin-bottom: 0.5rem; }
+        .legal-version {
+            padding: 0.75rem 1.5rem;
+            border-top: 1px solid var(--drawer-border);
+            font-size: 0.7rem;
+            color: var(--section-label-clr);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
         /* Theme transition */
         *, *::before, *::after { transition-property: background-color, border-color, color; transition-duration: 0.3s; }
         /* (override: don't slow down transforms) */
@@ -736,6 +839,13 @@
                         <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </button>
+                <button class="icon-btn" onclick="openLegal()" title="Privacy &amp; Legal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -788,6 +898,45 @@
                     <line x1="19" y1="4" x2="19" y2="20"/>
                 </svg>
             </button>
+        </div>
+    </div>
+
+    <!-- Legal / Privacy Sheet -->
+    <div class="legal-overlay" id="legal-overlay" onclick="handleLegalOverlayClick(event)">
+        <div class="legal-sheet">
+            <div class="legal-sheet-header">
+                <span class="legal-sheet-title">Privacy, Disclaimer &amp; Legal</span>
+                <button class="drawer-close" onclick="closeLegal()" aria-label="Close">✕</button>
+            </div>
+            <div class="legal-sheet-body">
+
+                <h3>⚠️ Disclaimer</h3>
+                <p>TimerGo is provided <strong>"as-is"</strong> and <strong>"as-available"</strong>, without warranty of any kind — express, implied, or statutory. The author(s) and contributors make no representations or warranties regarding accuracy, reliability, or fitness for any particular purpose.</p>
+                <p>Use of this application is entirely at your own risk. The author(s) accept <strong>no liability</strong> whatsoever for any direct, indirect, incidental, special, consequential, or exemplary damages arising from the use of or inability to use this app, including but not limited to lost productivity, data loss, or any financial, professional, or personal consequences.</p>
+                <p>This app is a <strong>personal time-management utility only</strong>. It is not medical advice, not a replacement for professional guidance, and should not be relied upon for safety-critical applications.</p>
+
+                <h3>🔒 Privacy Policy</h3>
+                <p><strong>TimerGo collects no personal data.</strong> There are no servers, no accounts, no cookies, no tracking scripts, no analytics, and no third-party data processors.</p>
+                <p>The only data stored is your timer profiles and theme preference, saved <strong>locally in your browser</strong> using the Web Storage API (<code>localStorage</code>). This data never leaves your device and is fully under your control. You can clear it at any time via your browser settings.</p>
+                <p>The Google Fonts CSS file is loaded from <code>fonts.googleapis.com</code>. Google may log the request per their own <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>. No font data is sent to any TimerGo server (there is none).</p>
+                <p>Browser push notifications, if granted, are generated entirely on-device and are not sent to any server.</p>
+
+                <h3>🍪 Cookie Policy</h3>
+                <p>TimerGo uses <strong>no cookies</strong>. Settings are stored in <code>localStorage</code>, which is distinct from cookies and is not transmitted in HTTP requests.</p>
+
+                <h3>📜 Open Source License</h3>
+                <p>TimerGo is open-source software released under the <strong>MIT License</strong>.</p>
+                <p>Copyright © 2024–2026 TimerGo Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following condition: the above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+                <p>The Software is provided "as is", without warranty of any kind. See the full <a href="https://github.com/amalkp814/timergo/blob/main/LICENSE" target="_blank" rel="noopener">MIT License on GitHub</a>.</p>
+
+                <h3>🤝 Terms of Use</h3>
+                <p>By using TimerGo you agree that: (1) you use the app for lawful purposes only; (2) you will not attempt to reverse-engineer, exploit, or misuse the service; (3) the author reserves the right to modify or discontinue the app at any time without notice; (4) these terms may be updated without prior notice — continued use constitutes acceptance.</p>
+
+                <h3>✉️ Contact</h3>
+                <p>For issues, feedback, or legal enquiries, please open an issue on <a href="https://github.com/amalkp814/timergo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+
+            </div>
+            <div class="legal-version">TimerGo · Open Source (MIT) · No data collected · <a href="https://github.com/amalkp814/timergo" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a></div>
         </div>
     </div>
 
@@ -1371,6 +1520,18 @@
                 document.exitFullscreen();
             }
         }
+
+        // ===== LEGAL =====
+        function openLegal() {
+            document.getElementById('legal-overlay').classList.add('active');
+        }
+        function closeLegal() {
+            document.getElementById('legal-overlay').classList.remove('active');
+        }
+        function handleLegalOverlayClick(e) {
+            if (e.target === document.getElementById('legal-overlay')) closeLegal();
+        }
+
 
         // ===== THEME =====
         const SUN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

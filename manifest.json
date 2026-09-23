@@ -1,17 +1,40 @@
 {
   "name": "TimerGo",
   "short_name": "TimerGo",
-  "description": "A sleek, precise Pomodoro timer.",
-  "start_url": "./index.html",
+  "description": "A beautiful, installable Pomodoro & multi-timer app with custom profiles, day/night themes, and sequence automation.",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#f43f5e",
-  "theme_color": "#f43f5e",
+  "background_color": "#0b0c14",
+  "theme_color": "#e05c74",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "lang": "en-US",
   "icons": [
     {
       "src": "icon.svg",
-      "sizes": "192x192 512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "og-preview.jpg",
+      "sizes": "1366x768",
+      "type": "image/jpeg",
+      "label": "TimerGo — Dark mode with Pomodoro sequence"
     }
   ]
 }

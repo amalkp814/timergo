@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 TimerGo Contributors
+Copyright (c) 2024–2026 TimerGo Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+THIRD-PARTY NOTICES
+===================
+
+Inter Typeface
+  License : SIL Open Font License 1.1
+  Source  : https://fonts.google.com/specimen/Inter
+  Author  : Rasmus Andersson / Google Fonts
+  Notes   : Loaded at runtime from fonts.googleapis.com; no font files are
+            bundled with this repository. The SIL OFL 1.1 permits use,
+            modification, and redistribution for any purpose, commercial or
+            otherwise, provided the original copyright notice is preserved
+            in any redistribution.
+
+All other code, SVG artwork, and assets in this repository are original
+work authored by TimerGo contributors. No proprietary, GPL-incompatible,
+or otherwise encumbered material is included.
