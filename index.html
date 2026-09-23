@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimerGo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        :root {
+            --bg-color: #f43f5e; /* Rose 500 */
+            --primary-color: #f43f5e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.5s ease;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 90%;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 0.25rem;
+            border-radius: 9999px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mode-btn.active {
+            background: rgba(0, 0, 0, 0.15);
+            font-weight: 700;
+        }
+
+        .timer-display {
+            font-size: 5.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.05em;
+            line-height: 1;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .start-btn {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 9999px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s ease, background-color 0.2s ease, color 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+
+        .start-btn:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 0.75rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+
+        svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .reset-btn svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TimerGo</h1>
+
+        <div class="modes">
+            <button id="btn-pomodoro" class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
+            <button id="btn-short" class="mode-btn" onclick="setMode('shortBreak')">Short Break</button>
+            <button id="btn-long" class="mode-btn" onclick="setMode('longBreak')">Long Break</button>
+        </div>
+
+        <div class="timer-display" id="timer-display">
+            25:00
+        </div>
+
+        <div class="controls">
+            <button id="start-btn" class="start-btn" onclick="toggleTimer()">
+                <svg id="play-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+                <svg id="pause-icon" class="hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/></svg>
+                <span id="start-text">Start</span>
+            </button>
+            <button class="reset-btn" onclick="resetTimer()" title="Reset Timer">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const modes = {
+            pomodoro: { time: 25 * 60, color: '#f43f5e' }, // Rose 500
+            shortBreak: { time: 5 * 60, color: '#14b8a6' },  // Teal 500
+            longBreak: { time: 15 * 60, color: '#3b82f6' }   // Blue 500
+        };
+
+        let currentMode = 'pomodoro';
+        let timeLeft = modes[currentMode].time;
+        let timerId = null;
+        let isRunning = false;
+        let endTime = null;
+        let audioCtx = null;
+
+        const display = document.getElementById('timer-display');
+        const startBtnText = document.getElementById('start-text');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const root = document.documentElement;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function updateDisplay() {
+            const t = Math.max(0, timeLeft);
+            const minutes = Math.floor(t / 60);
+            const seconds = t % 60;
+            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            display.textContent = timeString;
+            
+            // Update document title with remaining time and current mode
+            const modeName = currentMode === 'pomodoro' ? 'Work' : 'Break';
+            document.title = `${timeString} - ${modeName} | TimerGo`;
+        }
+
+        // Web Audio API for a soft chime without external files
+        function playChime() {
+            try {
+                if (!audioCtx) initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 1);
+                
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+            } catch (e) {
+                console.log("AudioContext not supported or blocked");
+            }
+        }
+
+        function toggleTimer() {
+            initAudio();
+            
+            if (isRunning) {
+                // Pause
+                clearInterval(timerId);
+                isRunning = false;
+                timeLeft = Math.round((endTime - Date.now()) / 1000);
+                if (timeLeft < 0) timeLeft = 0;
+                
+                startBtnText.textContent = 'Start';
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                updateDisplay();
+            } else {
+                // Start
+                if (timeLeft <= 0) {
+                    timeLeft = modes[currentMode].time;
+                }
+                
+                isRunning = true;
+                endTime = Date.now() + (timeLeft * 1000);
+                
+                startBtnText.textContent = 'Pause';
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                
+                updateDisplay();
+                
+                timerId = setInterval(() => {
+                    const now = Date.now();
+                    timeLeft = Math.round((endTime - now) / 1000);
+                    
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        updateDisplay();
+                        clearInterval(timerId);
+                        isRunning = false;
+                        playChime();
+                        
+                        startBtnText.textContent = 'Start';
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                        
+                        // Auto-reset after a short delay so user sees 00:00
+                        setTimeout(() => {
+                            if (!isRunning && timeLeft <= 0) {
+                                timeLeft = modes[currentMode].time;
+                                updateDisplay();
+                            }
+                        }, 3000);
+                    } else {
+                        updateDisplay();
+                    }
+                }, 100);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            timeLeft = modes[currentMode].time;
+            
+            startBtnText.textContent = 'Start';
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            
+            updateDisplay();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update CSS Variables for color transitions
+            root.style.setProperty('--bg-color', modes[mode].color);
+            root.style.setProperty('--primary-color', modes[mode].color);
+
+            // Update active button classes
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtnId = mode === 'pomodoro' ? 'btn-pomodoro' : mode === 'shortBreak' ? 'btn-short' : 'btn-long';
+            document.getElementById(activeBtnId).classList.add('active');
+
+            // Reset the timer for the new mode
+            resetTimer();
+        }
+
+        // Initialize display on load
+        updateDisplay();
+    </script>
+</body>
+</html>
