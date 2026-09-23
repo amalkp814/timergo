@@ -1,0 +1,17 @@
+{
+  "name": "TimerGo",
+  "short_name": "TimerGo",
+  "description": "A sleek, precise Pomodoro timer.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f43f5e",
+  "theme_color": "#f43f5e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

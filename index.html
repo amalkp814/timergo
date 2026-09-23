@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimerGo</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
         :root {
-            --bg-color: #f43f5e; /* Rose 500 */
+            --bg-color: #f43f5e;
             --primary-color: #f43f5e;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -30,7 +28,7 @@
         }
 
         .container {
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
             padding: 2rem;
             background: rgba(255, 255, 255, 0.1);
@@ -41,21 +39,17 @@
             text-align: center;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.05em;
-        }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; letter-spacing: 0.05em; }
 
         .modes {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 0.5rem;
             margin-bottom: 2rem;
             background: rgba(0, 0, 0, 0.1);
-            padding: 0.25rem;
-            border-radius: 9999px;
+            padding: 0.5rem;
+            border-radius: 1.5rem;
         }
 
         .mode-btn {
@@ -71,14 +65,8 @@
             font-family: inherit;
         }
 
-        .mode-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .mode-btn.active {
-            background: rgba(0, 0, 0, 0.15);
-            font-weight: 700;
-        }
+        .mode-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .mode-btn.active { background: rgba(0, 0, 0, 0.15); font-weight: 700; }
 
         .timer-display {
             font-size: 5.5rem;
@@ -87,14 +75,12 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.05em;
             line-height: 1;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
+        .timer-display:hover { opacity: 0.8; }
 
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-        }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 1rem; }
 
         .start-btn {
             background-color: white;
@@ -107,70 +93,100 @@
             cursor: pointer;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             transition: transform 0.1s ease, background-color 0.2s ease, color 0.5s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: inherit;
+            display: flex; align-items: center; gap: 0.5rem; font-family: inherit;
         }
-
-        .start-btn:hover {
-            background-color: #f3f4f6;
-            transform: scale(1.05);
-        }
-
-        .start-btn:active {
-            transform: scale(0.95);
-        }
+        .start-btn:hover { background-color: #f3f4f6; transform: scale(1.05); }
+        .start-btn:active { transform: scale(0.95); }
 
         .reset-btn {
-            background: transparent;
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            padding: 0.75rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: transparent; border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white; padding: 0.75rem; border-radius: 9999px; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
         }
+        .reset-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: white; transform: scale(1.05); }
+        .reset-btn:active { transform: scale(0.95); }
+        svg { width: 1.25rem; height: 1.25rem; }
+        .reset-btn svg { width: 1.5rem; height: 1.5rem; }
+        .hidden { display: none !important; }
 
-        .reset-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: white;
-            transform: scale(1.05);
+        /* Toolbar */
+        .toolbar { position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; }
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.2); border: none; color: white;
+            padding: 0.6rem; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: background 0.2s;
         }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
 
-        .reset-btn:active {
-            transform: scale(0.95);
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
         }
-
-        svg {
-            width: 1.25rem;
-            height: 1.25rem;
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: white; color: #1f2937; padding: 2rem; border-radius: 1rem;
+            width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; text-align: left;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
+        .modal h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
+        .close-btn:hover { color: #4b5563; }
         
-        .reset-btn svg {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
+        .modal-section { margin-bottom: 1.5rem; }
+        .modal-section h3 { font-size: 1rem; margin-bottom: 0.75rem; font-weight: 600; color: #4b5563; }
+        
+        .profile-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+        .profile-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
+        .profile-info { display: flex; align-items: center; gap: 0.75rem; font-weight: 600; }
+        .profile-color-dot { width: 1rem; height: 1rem; border-radius: 50%; }
+        .profile-delete { color: #ef4444; cursor: pointer; border: none; background: none; padding: 0.25rem; border-radius: 0.25rem; }
+        .profile-delete:hover { background: #fee2e2; }
 
-        .hidden {
-            display: none !important;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+        .form-group label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+        .form-group input[type="text"], .form-group input[type="number"] { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-family: inherit; font-size: 1rem; }
+        
+        .color-presets { display: flex; gap: 0.5rem; align-items: center; }
+        .color-preset { width: 2rem; height: 2rem; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+        .color-preset:hover { transform: scale(1.1); }
+        .color-preset.selected { border-color: #1f2937; }
+        #custom-color { width: 2.2rem; height: 2.2rem; padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; }
+
+        .btn { padding: 0.6rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; font-family: inherit; transition: background 0.2s; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-outline { background: transparent; color: #374151; border: 1px solid #d1d5db; }
+        .btn-outline:hover { background: #f9fafb; }
+        
+        .flex-row { display: flex; gap: 0.5rem; }
+        .mt-1 { margin-top: 1rem; }
+        .w-full { width: 100%; }
+        
+        hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
     </style>
 </head>
 <body>
+    <div class="toolbar">
+        <button class="icon-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+            <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+        </button>
+        <button class="icon-btn" onclick="openSettings()" title="Settings">
+            <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+    </div>
+
     <div class="container">
         <h1>TimerGo</h1>
 
-        <div class="modes">
-            <button id="btn-pomodoro" class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
-            <button id="btn-short" class="mode-btn" onclick="setMode('shortBreak')">Short Break</button>
-            <button id="btn-long" class="mode-btn" onclick="setMode('longBreak')">Long Break</button>
+        <div class="modes" id="modes-container">
+            <!-- Mode buttons rendered here -->
         </div>
 
-        <div class="timer-display" id="timer-display">
+        <div class="timer-display" id="timer-display" onclick="editTimer()" title="Click to edit timer">
             25:00
         </div>
 
@@ -186,33 +202,96 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <h2>Settings <button class="close-btn" onclick="closeSettings()">&times;</button></h2>
+            
+            <div class="modal-section">
+                <h3>Your Profiles</h3>
+                <div class="profile-list" id="profile-list">
+                    <!-- Profile items rendered here -->
+                </div>
+            </div>
+
+            <div class="modal-section" style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                <h3>Add New Profile</h3>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="new-profile-name" placeholder="e.g. Deep Work">
+                </div>
+                <div class="form-group">
+                    <label>Duration (minutes)</label>
+                    <input type="number" id="new-profile-time" placeholder="e.g. 50" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Theme Color</label>
+                    <div class="color-presets">
+                        <div class="color-preset selected" style="background: #f43f5e" onclick="selectColor(this, '#f43f5e')"></div>
+                        <div class="color-preset" style="background: #14b8a6" onclick="selectColor(this, '#14b8a6')"></div>
+                        <div class="color-preset" style="background: #3b82f6" onclick="selectColor(this, '#3b82f6')"></div>
+                        <div class="color-preset" style="background: #f59e0b" onclick="selectColor(this, '#f59e0b')"></div>
+                        <div class="color-preset" style="background: #8b5cf6" onclick="selectColor(this, '#8b5cf6')"></div>
+                        <input type="color" id="custom-color" value="#f43f5e" onchange="selectColor(null, this.value)" title="Custom Color">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-full mt-1" onclick="addProfile()">Add Profile</button>
+            </div>
+
+            <hr>
+            
+            <div class="modal-section">
+                <h3>Data Management</h3>
+                <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem;">Backup or restore your custom profiles.</p>
+                <div class="flex-row">
+                    <button class="btn btn-secondary w-full" onclick="exportData()">Export JSON</button>
+                    <button class="btn btn-secondary w-full" onclick="document.getElementById('import-file').click()">Import JSON</button>
+                    <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const modes = {
-            pomodoro: { time: 25 * 60, color: '#f43f5e' }, // Rose 500
-            shortBreak: { time: 5 * 60, color: '#14b8a6' },  // Teal 500
-            longBreak: { time: 15 * 60, color: '#3b82f6' }   // Blue 500
+        // --- Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        // --- Data & State ---
+        const defaultModes = {
+            'pomodoro': { name: 'Pomodoro', time: 25 * 60, color: '#f43f5e' },
+            'shortBreak': { name: 'Short Break', time: 5 * 60, color: '#14b8a6' },
+            'longBreak': { name: 'Long Break', time: 15 * 60, color: '#3b82f6' }
         };
 
-        let currentMode = 'pomodoro';
-        let timeLeft = modes[currentMode].time;
+        let modes = JSON.parse(localStorage.getItem('timergo-modes')) || defaultModes;
+        let currentMode = localStorage.getItem('timergo-current') || 'pomodoro';
+        
+        // Fallback if currentMode doesn't exist in loaded modes
+        if (!modes[currentMode]) currentMode = Object.keys(modes)[0] || 'pomodoro';
+
+        let timeLeft = modes[currentMode] ? modes[currentMode].time : 25 * 60;
         let timerId = null;
         let isRunning = false;
         let endTime = null;
         let audioCtx = null;
+        let selectedNewColor = '#f43f5e';
 
+        // --- DOM Elements ---
         const display = document.getElementById('timer-display');
         const startBtnText = document.getElementById('start-text');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
         const root = document.documentElement;
 
+        // --- Core Timer Logic ---
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            requestNotificationPermission();
         }
 
         function updateDisplay() {
@@ -222,83 +301,65 @@
             const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             display.textContent = timeString;
             
-            // Update document title with remaining time and current mode
-            const modeName = currentMode === 'pomodoro' ? 'Work' : 'Break';
+            const modeName = modes[currentMode] ? modes[currentMode].name : 'Timer';
             document.title = `${timeString} - ${modeName} | TimerGo`;
         }
 
-        // Web Audio API for a soft chime without external files
         function playChime() {
             try {
                 if (!audioCtx) initAudio();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 1);
-                
                 gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + 1);
-            } catch (e) {
-                console.log("AudioContext not supported or blocked");
-            }
+            } catch (e) { console.log("AudioContext blocked"); }
         }
 
         function toggleTimer() {
             initAudio();
-            
             if (isRunning) {
-                // Pause
                 clearInterval(timerId);
                 isRunning = false;
                 timeLeft = Math.round((endTime - Date.now()) / 1000);
                 if (timeLeft < 0) timeLeft = 0;
-                
                 startBtnText.textContent = 'Start';
                 playIcon.classList.remove('hidden');
                 pauseIcon.classList.add('hidden');
                 updateDisplay();
             } else {
-                // Start
-                if (timeLeft <= 0) {
-                    timeLeft = modes[currentMode].time;
-                }
-                
+                if (timeLeft <= 0) timeLeft = modes[currentMode].time;
                 isRunning = true;
                 endTime = Date.now() + (timeLeft * 1000);
-                
                 startBtnText.textContent = 'Pause';
                 playIcon.classList.add('hidden');
                 pauseIcon.classList.remove('hidden');
-                
                 updateDisplay();
                 
                 timerId = setInterval(() => {
                     const now = Date.now();
                     timeLeft = Math.round((endTime - now) / 1000);
-                    
                     if (timeLeft <= 0) {
                         timeLeft = 0;
                         updateDisplay();
                         clearInterval(timerId);
                         isRunning = false;
                         playChime();
+                        sendNotification();
                         
                         startBtnText.textContent = 'Start';
                         playIcon.classList.remove('hidden');
                         pauseIcon.classList.add('hidden');
                         
-                        // Auto-reset after a short delay so user sees 00:00
                         setTimeout(() => {
                             if (!isRunning && timeLeft <= 0) {
-                                timeLeft = modes[currentMode].time;
+                                timeLeft = modes[currentMode] ? modes[currentMode].time : 25 * 60;
                                 updateDisplay();
                             }
                         }, 3000);
@@ -312,32 +373,198 @@
         function resetTimer() {
             clearInterval(timerId);
             isRunning = false;
-            timeLeft = modes[currentMode].time;
-            
+            timeLeft = modes[currentMode] ? modes[currentMode].time : 25 * 60;
             startBtnText.textContent = 'Start';
             playIcon.classList.remove('hidden');
             pauseIcon.classList.add('hidden');
-            
             updateDisplay();
         }
 
-        function setMode(mode) {
-            currentMode = mode;
+        function setMode(modeKey) {
+            if (!modes[modeKey]) return;
+            currentMode = modeKey;
+            localStorage.setItem('timergo-current', currentMode);
             
-            // Update CSS Variables for color transitions
-            root.style.setProperty('--bg-color', modes[mode].color);
-            root.style.setProperty('--primary-color', modes[mode].color);
+            root.style.setProperty('--bg-color', modes[modeKey].color);
+            root.style.setProperty('--primary-color', modes[modeKey].color);
 
-            // Update active button classes
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtnId = mode === 'pomodoro' ? 'btn-pomodoro' : mode === 'shortBreak' ? 'btn-short' : 'btn-long';
-            document.getElementById(activeBtnId).classList.add('active');
-
-            // Reset the timer for the new mode
+            renderModes();
             resetTimer();
         }
 
-        // Initialize display on load
+        function editTimer() {
+            if (isRunning) toggleTimer(); // Pause first
+            const currentMins = Math.ceil(timeLeft / 60);
+            const input = prompt("Enter new time in minutes:", currentMins);
+            if (input !== null) {
+                const mins = parseFloat(input);
+                if (!isNaN(mins) && mins > 0) {
+                    timeLeft = Math.round(mins * 60);
+                    updateDisplay();
+                }
+            }
+        }
+
+        // --- Profile Management ---
+        function renderModes() {
+            const container = document.getElementById('modes-container');
+            container.innerHTML = '';
+            Object.keys(modes).forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = `mode-btn ${currentMode === key ? 'active' : ''}`;
+                btn.textContent = modes[key].name;
+                btn.onclick = () => setMode(key);
+                container.appendChild(btn);
+            });
+            
+            if (modes[currentMode]) {
+                root.style.setProperty('--bg-color', modes[currentMode].color);
+                root.style.setProperty('--primary-color', modes[currentMode].color);
+            }
+        }
+
+        function saveModes() {
+            localStorage.setItem('timergo-modes', JSON.stringify(modes));
+            renderModes();
+        }
+
+        // --- Settings UI ---
+        function openSettings() {
+            document.getElementById('settings-modal').classList.add('active');
+            renderProfileList();
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        function renderProfileList() {
+            const list = document.getElementById('profile-list');
+            list.innerHTML = '';
+            Object.keys(modes).forEach(key => {
+                list.innerHTML += `
+                    <div class="profile-item">
+                        <div class="profile-info">
+                            <div class="profile-color-dot" style="background: ${modes[key].color}"></div>
+                            ${modes[key].name} (${Math.round(modes[key].time / 60)}m)
+                        </div>
+                        <button class="profile-delete" onclick="deleteProfile('${key}')" title="Delete">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function selectColor(element, color) {
+            selectedNewColor = color;
+            document.querySelectorAll('.color-preset').forEach(el => el.classList.remove('selected'));
+            if (element) {
+                element.classList.add('selected');
+            } else {
+                // If native color picker was used, sync the visual if desired, or just deselect presets
+                document.getElementById('custom-color').value = color;
+            }
+        }
+
+        function addProfile() {
+            const nameInput = document.getElementById('new-profile-name');
+            const timeInput = document.getElementById('new-profile-time');
+            const name = nameInput.value.trim();
+            const mins = parseFloat(timeInput.value);
+            
+            if (name && !isNaN(mins) && mins > 0) {
+                const key = 'custom_' + Date.now();
+                modes[key] = { name: name, time: mins * 60, color: selectedNewColor };
+                saveModes();
+                renderProfileList();
+                nameInput.value = '';
+                timeInput.value = '';
+            } else {
+                alert("Please enter a valid name and duration.");
+            }
+        }
+
+        function deleteProfile(key) {
+            if (Object.keys(modes).length <= 1) {
+                alert("You must have at least one profile.");
+                return;
+            }
+            if (confirm(`Delete profile "${modes[key].name}"?`)) {
+                delete modes[key];
+                if (currentMode === key) {
+                    currentMode = Object.keys(modes)[0];
+                    localStorage.setItem('timergo-current', currentMode);
+                    resetTimer(); // Update UI for the fallback mode
+                }
+                saveModes();
+                renderProfileList();
+            }
+        }
+
+        // --- Import/Export ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(modes));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "timergo_profiles.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                        modes = parsed;
+                        currentMode = Object.keys(modes)[0];
+                        localStorage.setItem('timergo-current', currentMode);
+                        saveModes();
+                        renderProfileList();
+                        resetTimer();
+                        alert("Profiles imported successfully!");
+                    }
+                } catch (err) {
+                    alert("Invalid JSON file.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+
+        // --- Notifications & Fullscreen ---
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+        }
+
+        function sendNotification() {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("TimerGo", {
+                    body: "Time's up! Great job.",
+                    icon: "icon.svg"
+                });
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // --- Initialization ---
+        renderModes();
         updateDisplay();
     </script>
 </body>
